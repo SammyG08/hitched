@@ -19,7 +19,7 @@ class AppDatabase {
       userName: Platform.environment['MYSQL_USER'] ?? 'root',
       password: Platform.environment['MYSQL_PASSWORD'] ?? '',
       databaseName: Platform.environment['MYSQL_DATABASE'] ?? 'hitched',
-      secure: (Platform.environment['MYSQL_SECURE'] ?? 'false') == 'true',
+      secure: (Platform.environment['MYSQL_SECURE'] ?? 'true') == 'true',
     );
     await conn.connect();
     _connection = conn;
@@ -110,8 +110,12 @@ class AppDatabase {
       );
       final coupleId = couple.lastInsertID.toInt();
       await db.execute(
-        'UPDATE users SET couple_id = :coupleId WHERE id IN (:firstId, :secondId)',
-        {'coupleId': coupleId, 'firstId': firstId, 'secondId': secondId},
+        'UPDATE users SET couple_id = :coupleId WHERE id = :firstId OR id = :secondId',
+        {
+          'coupleId': coupleId,
+          'firstId': firstId,
+          'secondId': secondId,
+        },
       );
       await db.execute('COMMIT');
       return (await userByEmail(primaryEmail))!;
