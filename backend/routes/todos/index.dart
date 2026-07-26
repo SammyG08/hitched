@@ -5,33 +5,27 @@ Future<Response> onRequest(RequestContext context) async {
   final db = context.read<AppDatabase>();
   final user = context.read<Map<String, dynamic>>();
   final coupleId = user['couple_id'];
-  if (coupleId == null) {
-    return Response.json(
-        statusCode: 403, body: {'error': 'Couple account required'});
-  }
   final conn = await db.connection;
-
   if (context.request.method == HttpMethod.get) {
     final rows = await conn.execute(
-        'SELECT * FROM guests WHERE couple_id = :coupleId ORDER BY created_at DESC',
+        'SELECT * FROM todos WHERE couple_id = :coupleId ORDER BY is_done, due_date',
         {'coupleId': coupleId});
     return Response.json(body: rows.rows.map((r) => r.assoc()).toList());
   }
   if (context.request.method == HttpMethod.post) {
     final body = await context.request.json() as Map<String, dynamic>;
-    final name = body['name'] as String?;
-    if (name == null || name.trim().isEmpty) {
+    final title = body['title'] as String?;
+    if (title == null || title.trim().isEmpty) {
       return Response.json(
-          statusCode: 400, body: {'error': 'name is required'});
+          statusCode: 400, body: {'error': 'title is required'});
     }
     final result = await conn.execute(
-      'INSERT INTO guests (couple_id, name, email, rsvp_status, dietary_notes) VALUES (:coupleId, :name, :email, :status, :notes)',
+      'INSERT INTO todos (couple_id, title, owner_role, due_date) VALUES (:coupleId, :title, :ownerRole, :dueDate)',
       {
         'coupleId': coupleId,
-        'name': name,
-        'email': body['email'],
-        'status': body['rsvpStatus'] ?? 'pending',
-        'notes': body['dietaryNotes']
+        'title': title,
+        'ownerRole': body['ownerRole'] ?? 'shared',
+        'dueDate': body['dueDate']
       },
     );
     return Response.json(

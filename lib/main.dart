@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hitched/core/theme/theme.dart';
-import 'package:hitched/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:hitched/features/planner/presentation/screens/planner_app.dart';
 
 void main() {
-  runApp(
-    const ProviderScope(
-      child: HitchedApp(),
-    ),
-  );
+  runApp(const HitchedApp());
 }
 
 class HitchedApp extends StatelessWidget {
@@ -16,11 +12,13 @@ class HitchedApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Hitched',
-      theme: AppTheme.lightTheme,
-      home: const DashboardScreen(),
-      debugShowCheckedModeBanner: false,
+    return ProviderScope(
+      child: MaterialApp(
+        title: 'Hitched',
+        theme: AppTheme.lightTheme,
+        home: const PlannerShell(),
+        debugShowCheckedModeBanner: false,
+      ),
     );
   }
 }
