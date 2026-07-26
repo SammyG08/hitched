@@ -199,6 +199,7 @@ class _LoginFormState extends ConsumerState<_LoginForm> {
       key: const ValueKey('login'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const _AuthErrorBanner(),
         HitchedTextField(
           controller: email,
           label: 'Email',
@@ -212,14 +213,20 @@ class _LoginFormState extends ConsumerState<_LoginForm> {
         ),
         const SizedBox(height: 8),
         ElevatedButton(
-          onPressed: () => ref
-              .read(appControllerProvider.notifier)
-              .login(email.text, password.text),
-          child: const Text('Login'),
+          onPressed: ref.watch(appControllerProvider).isBusy
+              ? null
+              : () async {
+                  await ref
+                      .read(appControllerProvider.notifier)
+                      .login(email.text, password.text);
+                },
+          child: Text(
+            ref.watch(appControllerProvider).isBusy ? 'Signing in...' : 'Login',
+          ),
         ),
         const SizedBox(height: 12),
         Text(
-          'Demo: use bride, groom, daniel, or vendor in the email to open that role.',
+          'Login uses the backend auth endpoint. Start the Dart Frog API and MySQL before signing in.',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       ],
@@ -239,8 +246,12 @@ class _CoupleRegisterFormState extends ConsumerState<_CoupleRegisterForm> {
   UserRole role = UserRole.bride;
   final name = TextEditingController(text: 'Amara Belle');
   final email = TextEditingController(text: 'bride@hitched.app');
+  final password = TextEditingController(text: 'password123');
+  final confirmPassword = TextEditingController(text: 'password123');
   final partnerName = TextEditingController(text: 'Daniel Hart');
   final partnerEmail = TextEditingController(text: 'groom@hitched.app');
+  final partnerPassword = TextEditingController(text: 'password123');
+  final confirmPartnerPassword = TextEditingController(text: 'password123');
   final date = TextEditingController(text: '2027-04-18');
   final location = TextEditingController(text: 'The Glasshouse, Lagos');
 
@@ -250,6 +261,7 @@ class _CoupleRegisterFormState extends ConsumerState<_CoupleRegisterForm> {
       key: const ValueKey('couple'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const _AuthErrorBanner(),
         SegmentedButton<UserRole>(
           segments: const [
             ButtonSegment(value: UserRole.bride, label: Text('Bride')),
@@ -270,6 +282,18 @@ class _CoupleRegisterFormState extends ConsumerState<_CoupleRegisterForm> {
           icon: Icons.alternate_email,
         ),
         HitchedTextField(
+          controller: password,
+          label: 'Your password',
+          icon: Icons.lock_outline,
+          obscureText: true,
+        ),
+        HitchedTextField(
+          controller: confirmPassword,
+          label: 'Confirm your password',
+          icon: Icons.verified_user_outlined,
+          obscureText: true,
+        ),
+        HitchedTextField(
           controller: partnerName,
           label: role == UserRole.bride ? 'Groom name' : 'Bride name',
           icon: Icons.diversity_1_outlined,
@@ -278,6 +302,18 @@ class _CoupleRegisterFormState extends ConsumerState<_CoupleRegisterForm> {
           controller: partnerEmail,
           label: 'Partner email',
           icon: Icons.mark_email_unread_outlined,
+        ),
+        HitchedTextField(
+          controller: partnerPassword,
+          label: 'Partner password',
+          icon: Icons.key_outlined,
+          obscureText: true,
+        ),
+        HitchedTextField(
+          controller: confirmPartnerPassword,
+          label: 'Confirm partner password',
+          icon: Icons.verified_user_outlined,
+          obscureText: true,
         ),
         HitchedTextField(
           controller: date,
@@ -291,17 +327,44 @@ class _CoupleRegisterFormState extends ConsumerState<_CoupleRegisterForm> {
         ),
         const SizedBox(height: 8),
         ElevatedButton(
-          onPressed: () => ref
-              .read(appControllerProvider.notifier)
-              .registerCouple(
-                role: role,
-                name: name.text,
-                email: email.text,
-                partnerName: partnerName.text,
-                weddingDate: date.text,
-                location: location.text,
-              ),
-          child: const Text('Create linked couple accounts'),
+          onPressed: ref.watch(appControllerProvider).isBusy
+              ? null
+              : () async {
+                  if (password.text != confirmPassword.text) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Your passwords do not match'),
+                      ),
+                    );
+                    return;
+                  }
+                  if (partnerPassword.text != confirmPartnerPassword.text) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Partner passwords do not match'),
+                      ),
+                    );
+                    return;
+                  }
+                  await ref
+                      .read(appControllerProvider.notifier)
+                      .registerCouple(
+                        role: role,
+                        name: name.text,
+                        email: email.text,
+                        password: password.text,
+                        partnerName: partnerName.text,
+                        partnerEmail: partnerEmail.text,
+                        partnerPassword: partnerPassword.text,
+                        weddingDate: date.text,
+                        location: location.text,
+                      );
+                },
+          child: Text(
+            ref.watch(appControllerProvider).isBusy
+                ? 'Creating accounts...'
+                : 'Create linked couple accounts',
+          ),
         ),
       ],
     );
@@ -319,6 +382,8 @@ class _VendorRegisterForm extends ConsumerStatefulWidget {
 class _VendorRegisterFormState extends ConsumerState<_VendorRegisterForm> {
   final owner = TextEditingController(text: 'Tara Studios');
   final email = TextEditingController(text: 'vendor@hitched.app');
+  final password = TextEditingController(text: 'password123');
+  final confirmPassword = TextEditingController(text: 'password123');
   final service = TextEditingController(text: 'Tara Studios');
   final price = TextEditingController(text: '3500000');
   VendorCategory category = VendorCategory.photography;
@@ -329,6 +394,7 @@ class _VendorRegisterFormState extends ConsumerState<_VendorRegisterForm> {
       key: const ValueKey('vendor'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const _AuthErrorBanner(),
         HitchedTextField(
           controller: owner,
           label: 'Owner name',
@@ -338,6 +404,18 @@ class _VendorRegisterFormState extends ConsumerState<_VendorRegisterForm> {
           controller: email,
           label: 'Business email',
           icon: Icons.alternate_email,
+        ),
+        HitchedTextField(
+          controller: password,
+          label: 'Password',
+          icon: Icons.lock_outline,
+          obscureText: true,
+        ),
+        HitchedTextField(
+          controller: confirmPassword,
+          label: 'Confirm password',
+          icon: Icons.verified_user_outlined,
+          obscureText: true,
         ),
         HitchedTextField(
           controller: service,
@@ -368,16 +446,32 @@ class _VendorRegisterFormState extends ConsumerState<_VendorRegisterForm> {
         ),
         const SizedBox(height: 8),
         ElevatedButton(
-          onPressed: () => ref
-              .read(appControllerProvider.notifier)
-              .registerVendor(
-                ownerName: owner.text,
-                email: email.text,
-                serviceName: service.text,
-                category: category,
-                startingPriceCents: (int.tryParse(price.text) ?? 3500000) * 100,
-              ),
-          child: const Text('Create vendor account'),
+          onPressed: ref.watch(appControllerProvider).isBusy
+              ? null
+              : () async {
+                  if (password.text != confirmPassword.text) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Passwords do not match')),
+                    );
+                    return;
+                  }
+                  await ref
+                      .read(appControllerProvider.notifier)
+                      .registerVendor(
+                        ownerName: owner.text,
+                        email: email.text,
+                        password: password.text,
+                        serviceName: service.text,
+                        category: category,
+                        startingPriceCents:
+                            (int.tryParse(price.text) ?? 3500000) * 100,
+                      );
+                },
+          child: Text(
+            ref.watch(appControllerProvider).isBusy
+                ? 'Creating vendor...'
+                : 'Create vendor account',
+          ),
         ),
       ],
     );
@@ -409,6 +503,27 @@ class _BrandMark extends StatelessWidget {
           ).textTheme.titleLarge?.copyWith(color: Colors.white, fontSize: 30),
         ),
       ],
+    );
+  }
+}
+
+class _AuthErrorBanner extends ConsumerWidget {
+  const _AuthErrorBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final error = ref.watch(appControllerProvider).authError;
+    if (error == null) return const SizedBox.shrink();
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.red.shade200),
+      ),
+      child: Text(error, style: TextStyle(color: Colors.red.shade800)),
     );
   }
 }

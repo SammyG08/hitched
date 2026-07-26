@@ -51,7 +51,10 @@ Future<Response> onRequest(RequestContext context) async {
     await conn.execute('COMMIT');
     final login = await db.login('${body['email']}', '${body['password']}');
     return Response.json(statusCode: 201, body: {
+      'id': ownerId,
       'vendorId': vendor.lastInsertID.toInt(),
+      'name': body['name'],
+      'email': '${body['email']}'.toLowerCase(),
       'token': login?['token'],
       'role': 'vendor'
     });

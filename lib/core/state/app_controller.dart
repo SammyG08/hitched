@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hitched/core/api/auth_api.dart';
 import 'package:hitched/core/models/wedding_models.dart';
 
 final appControllerProvider = StateNotifierProvider<AppController, AppState>(
@@ -14,6 +15,8 @@ class AppState {
     required this.vendors,
     required this.bookings,
     this.selectedCategory,
+    this.isBusy = false,
+    this.authError,
   });
 
   final AppUser? currentUser;
@@ -23,6 +26,8 @@ class AppState {
   final List<VendorListing> vendors;
   final List<VendorBooking> bookings;
   final VendorCategory? selectedCategory;
+  final bool isBusy;
+  final String? authError;
 
   bool get isAuthenticated => currentUser != null;
 
@@ -65,8 +70,11 @@ class AppState {
     List<VendorListing>? vendors,
     List<VendorBooking>? bookings,
     VendorCategory? selectedCategory,
+    bool? isBusy,
+    String? authError,
     bool clearCategory = false,
     bool clearUser = false,
+    bool clearAuthError = false,
   }) {
     return AppState(
       currentUser: clearUser ? null : currentUser ?? this.currentUser,
@@ -78,112 +86,135 @@ class AppState {
       selectedCategory: clearCategory
           ? null
           : selectedCategory ?? this.selectedCategory,
+      isBusy: isBusy ?? this.isBusy,
+      authError: clearAuthError ? null : authError ?? this.authError,
     );
   }
 }
 
 class AppController extends StateNotifier<AppState> {
-  AppController() : super(_initialState);
+  AppController({AuthApi? authApi})
+    : _authApi = authApi ?? AuthApi(),
+      super(_initialState);
 
-  void login(String email, String password) {
-    final role = email.contains('vendor')
-        ? UserRole.vendor
-        : email.contains('groom') || email.contains('daniel')
-        ? UserRole.groom
-        : UserRole.bride;
-    final name = switch (role) {
-      UserRole.bride => 'Amara Belle',
-      UserRole.groom => 'Daniel Hart',
-      UserRole.vendor => 'Opal Atelier',
-      UserRole.admin => 'Admin',
-    };
-    state = state.copyWith(
-      currentUser: AppUser(
-        id: role == UserRole.vendor ? 'vendor-opal' : 'user-${role.name}',
-        name: name,
-        email: email,
-        role: role,
-        coupleId: role == UserRole.vendor ? null : state.couple.id,
-        token: 'demo-token-${DateTime.now().millisecondsSinceEpoch}',
-      ),
-    );
+  final AuthApi _authApi;
+
+  Future<bool> login(String email, String password) async {
+    state = state.copyWith(isBusy: true, clearAuthError: true);
+    try {
+      final user = await _authApi.login(email: email, password: password);
+      state = state.copyWith(currentUser: user, isBusy: false);
+      return true;
+    } catch (error) {
+      state = state.copyWith(isBusy: false, authError: '$error');
+      return false;
+    }
   }
 
-  void registerCouple({
+  Future<bool> registerCouple({
     required UserRole role,
     required String name,
     required String email,
+    required String password,
     required String partnerName,
+    required String partnerEmail,
+    required String partnerPassword,
     required String weddingDate,
     required String location,
-  }) {
-    final brideName = role == UserRole.bride ? name : partnerName;
-    final groomName = role == UserRole.groom ? name : partnerName;
-    state = state.copyWith(
-      currentUser: AppUser(
-        id: 'user-${role.name}',
+  }) async {
+    state = state.copyWith(isBusy: true, clearAuthError: true);
+    try {
+      final user = await _authApi.registerCouple(
+        role: role,
         name: name,
         email: email,
-        role: role,
-        coupleId: state.couple.id,
-        token: 'demo-token-${DateTime.now().millisecondsSinceEpoch}',
-      ),
-      couple: state.couple.copyWith(
-        brideName: brideName,
-        groomName: groomName,
-        weddingDate: DateTime.tryParse(weddingDate),
+        password: password,
+        partnerName: partnerName,
+        partnerEmail: partnerEmail,
+        partnerPassword: partnerPassword,
+        weddingDate: weddingDate,
         location: location,
-      ),
-    );
+      );
+      final brideName = role == UserRole.bride ? name : partnerName;
+      final groomName = role == UserRole.groom ? name : partnerName;
+      state = state.copyWith(
+        currentUser: user,
+        isBusy: false,
+        couple: state.couple.copyWith(
+          brideName: brideName,
+          groomName: groomName,
+          weddingDate: DateTime.tryParse(weddingDate),
+          location: location,
+        ),
+      );
+      return true;
+    } catch (error) {
+      state = state.copyWith(isBusy: false, authError: '$error');
+      return false;
+    }
   }
 
-  void registerVendor({
+  Future<bool> registerVendor({
     required String ownerName,
     required String email,
+    required String password,
     required String serviceName,
     required VendorCategory category,
     required int startingPriceCents,
-  }) {
-    const ownerId = 'vendor-new';
-    final listing = VendorListing(
-      id: 'vendor-${DateTime.now().millisecondsSinceEpoch}',
-      ownerId: ownerId,
-      name: serviceName,
-      category: category,
-      city: 'Lagos',
-      description:
-          'Premium wedding service with curated packages, imagery, and reviews.',
-      imageUrl:
-          'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?q=80&w=1200&auto=format&fit=crop',
-      startingPriceCents: startingPriceCents,
-      rating: 4.7,
-      packages: [
-        VendorPackage(
-          id: 'package-new',
-          name: 'Signature package',
-          priceCents: startingPriceCents,
-          description: 'Core service package for one wedding day.',
-        ),
-      ],
-      reviews: const [
-        VendorReview(
-          author: 'New listing',
-          rating: 4.7,
-          comment: 'Ready for couples to discover.',
-        ),
-      ],
-      availableDates: [DateTime(2027, 4, 18), DateTime(2027, 5, 22)],
-    );
-    state = state.copyWith(
-      currentUser: AppUser(
-        id: ownerId,
-        name: ownerName,
+  }) async {
+    state = state.copyWith(isBusy: true, clearAuthError: true);
+    try {
+      final user = await _authApi.registerVendor(
+        ownerName: ownerName,
         email: email,
-        role: UserRole.vendor,
-        token: 'demo-token-${DateTime.now().millisecondsSinceEpoch}',
-      ),
-      vendors: [listing, ...state.vendors],
-    );
+        password: password,
+        serviceName: serviceName,
+        category: category,
+        description:
+            'Premium wedding service with curated packages, imagery, and reviews.',
+        priceCents: startingPriceCents,
+        imageUrl:
+            'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?q=80&w=1200&auto=format&fit=crop',
+      );
+      final listing = VendorListing(
+        id: 'vendor-${DateTime.now().millisecondsSinceEpoch}',
+        ownerId: user.id,
+        name: serviceName,
+        category: category,
+        city: 'Lagos',
+        description:
+            'Premium wedding service with curated packages, imagery, and reviews.',
+        imageUrl:
+            'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?q=80&w=1200&auto=format&fit=crop',
+        startingPriceCents: startingPriceCents,
+        rating: 4.7,
+        packages: [
+          VendorPackage(
+            id: 'package-new',
+            name: 'Signature package',
+            priceCents: startingPriceCents,
+            description: 'Core service package for one wedding day.',
+          ),
+        ],
+        reviews: const [
+          VendorReview(
+            author: 'New listing',
+            rating: 4.7,
+            comment: 'Ready for couples to discover.',
+          ),
+        ],
+        availableDates: [DateTime(2027, 4, 18), DateTime(2027, 5, 22)],
+      );
+      state = state.copyWith(
+        currentUser: user,
+        isBusy: false,
+        vendors: [listing, ...state.vendors],
+      );
+      return true;
+    } catch (error) {
+      state = state.copyWith(isBusy: false, authError: '$error');
+      return false;
+    }
   }
 
   void logout() => state = state.copyWith(clearUser: true, clearCategory: true);
@@ -202,16 +233,26 @@ class AppController extends StateNotifier<AppState> {
   }
 
   void addGuest(String name, String email) {
+    addGuestWithStatus(name, email, 'pending');
+  }
+
+  void addGuestWithStatus(String name, String email, String status) {
     state = state.copyWith(
       guests: [
         WeddingGuest(
           id: 'guest-${DateTime.now().millisecondsSinceEpoch}',
           name: name,
-          email: email,
-          status: 'pending',
+          email: email.trim().isEmpty ? null : email,
+          status: status,
         ),
         ...state.guests,
       ],
+    );
+  }
+
+  void removeGuest(String guestId) {
+    state = state.copyWith(
+      guests: state.guests.where((guest) => guest.id != guestId).toList(),
     );
   }
 
@@ -299,6 +340,45 @@ class AppController extends StateNotifier<AppState> {
           )
           .toList(),
     );
+  }
+
+  void createVendorListing({
+    required String name,
+    required VendorCategory category,
+    required String city,
+    required String description,
+    required String imageUrl,
+    required int startingPriceCents,
+    required String packageName,
+    required String packageDescription,
+  }) {
+    final user = state.currentUser;
+    if (user == null || user.role != UserRole.vendor) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final listing = VendorListing(
+      id: 'vendor-$now',
+      ownerId: user.id,
+      name: name,
+      category: category,
+      city: city,
+      description: description,
+      imageUrl: imageUrl.trim().isEmpty
+          ? 'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?q=80&w=1200&auto=format&fit=crop'
+          : imageUrl,
+      startingPriceCents: startingPriceCents,
+      rating: 0,
+      packages: [
+        VendorPackage(
+          id: 'package-$now',
+          name: packageName,
+          priceCents: startingPriceCents,
+          description: packageDescription,
+        ),
+      ],
+      reviews: const [],
+      availableDates: [state.couple.weddingDate],
+    );
+    state = state.copyWith(vendors: [listing, ...state.vendors]);
   }
 }
 
