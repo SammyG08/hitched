@@ -15,9 +15,9 @@ class AppState {
     required this.vendors,
     required this.bookings,
     this.selectedCategory,
-    this.isBusy = false,
+    bool? isBusy,
     this.authError,
-  });
+  }) : _isBusy = isBusy;
 
   final AppUser? currentUser;
   final CoupleProfile couple;
@@ -26,10 +26,11 @@ class AppState {
   final List<VendorListing> vendors;
   final List<VendorBooking> bookings;
   final VendorCategory? selectedCategory;
-  final bool isBusy;
+  final bool? _isBusy;
   final String? authError;
 
   bool get isAuthenticated => currentUser != null;
+  bool get isBusy => _isBusy ?? false;
 
   List<VendorListing> get visibleVendors {
     final user = currentUser;

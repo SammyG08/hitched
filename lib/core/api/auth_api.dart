@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:hitched/core/models/wedding_models.dart';
 
@@ -14,15 +15,20 @@ class AuthApiException implements Exception {
 class AuthApi {
   AuthApi({http.Client? client, String? baseUrl})
     : _client = client ?? http.Client(),
-      _baseUrl =
-          baseUrl ??
-          const String.fromEnvironment(
-            'API_BASE_URL',
-            defaultValue: 'http://localhost:8080',
-          );
+      _baseUrl = baseUrl ?? _configuredBaseUrl;
 
   final http.Client _client;
   final String _baseUrl;
+
+  static const _envBaseUrl = String.fromEnvironment('API_BASE_URL');
+
+  static String get _configuredBaseUrl {
+    if (_envBaseUrl.isNotEmpty) return _envBaseUrl;
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      return 'http://10.0.2.2:8080';
+    }
+    return 'http://localhost:8080';
+  }
 
   Future<AppUser> login({
     required String email,
@@ -87,11 +93,18 @@ class AuthApi {
     String path,
     Map<String, dynamic> body,
   ) async {
-    final response = await _client.post(
-      Uri.parse('$_baseUrl$path'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
+    late final http.Response response;
+    try {
+      response = await _client.post(
+        Uri.parse('$_baseUrl$path'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+    } catch (error) {
+      throw AuthApiException(
+        'Could not reach auth server at $_baseUrl. Start the backend, check MySQL, or run Flutter with --dart-define=API_BASE_URL=<your backend URL>. Detail: $error',
+      );
+    }
     final decoded = response.body.isEmpty
         ? <String, dynamic>{}
         : jsonDecode(response.body) as Map<String, dynamic>;
