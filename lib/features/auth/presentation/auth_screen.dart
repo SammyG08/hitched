@@ -226,7 +226,7 @@ class _LoginFormState extends ConsumerState<_LoginForm> {
         ),
         const SizedBox(height: 12),
         Text(
-          'Login uses the backend auth endpoint. Start the Dart Frog API and MySQL before signing in.',
+          'Use bride@hitched.app, groom@hitched.app, or vendor@hitched.app with any password.',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       ],

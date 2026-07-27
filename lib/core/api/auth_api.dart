@@ -1,7 +1,3 @@
-import 'dart:convert';
-
-import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:hitched/core/models/wedding_models.dart';
 
 class AuthApiException implements Exception {
@@ -13,32 +9,23 @@ class AuthApiException implements Exception {
 }
 
 class AuthApi {
-  AuthApi({http.Client? client, String? baseUrl})
-    : _client = client ?? http.Client(),
-      _baseUrl = baseUrl ?? _configuredBaseUrl;
-
-  final http.Client _client;
-  final String _baseUrl;
-
-  static const _envBaseUrl = String.fromEnvironment('API_BASE_URL');
-
-  static String get _configuredBaseUrl {
-    if (_envBaseUrl.isNotEmpty) return _envBaseUrl;
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:8080';
-    }
-    return 'http://localhost:8080';
-  }
+  AuthApi({Object? client, String? baseUrl});
 
   Future<AppUser> login({
     required String email,
     required String password,
   }) async {
-    final json = await _post('/auth/login', {
-      'email': email,
-      'password': password,
-    });
-    return _userFromJson(json);
+    final normalizedEmail = email.trim().toLowerCase();
+    if (normalizedEmail.isEmpty || password.isEmpty) {
+      throw const AuthApiException('Email and password are required');
+    }
+    return _demoUsers[normalizedEmail] ??
+        _localUser(
+          id: 'local-${normalizedEmail.hashCode.abs()}',
+          name: _nameFromEmail(normalizedEmail),
+          email: normalizedEmail,
+          role: _roleFromEmail(normalizedEmail),
+        );
   }
 
   Future<AppUser> registerCouple({
@@ -52,18 +39,17 @@ class AuthApi {
     required String weddingDate,
     required String location,
   }) async {
-    final json = await _post('/auth/register', {
-      'role': role.name,
-      'name': name,
-      'email': email,
-      'password': password,
-      'partnerName': partnerName,
-      'partnerEmail': partnerEmail,
-      'partnerPassword': partnerPassword,
-      'weddingDate': weddingDate,
-      'location': location,
-    });
-    return _userFromJson(json);
+    final normalizedEmail = email.trim().toLowerCase();
+    if (name.trim().isEmpty || normalizedEmail.isEmpty || password.isEmpty) {
+      throw const AuthApiException('Name, email, and password are required');
+    }
+    return _localUser(
+      id: 'local-${normalizedEmail.hashCode.abs()}',
+      coupleId: 'couple-local',
+      name: name.trim(),
+      email: normalizedEmail,
+      role: role,
+    );
   }
 
   Future<AppUser> registerVendor({
@@ -76,69 +62,80 @@ class AuthApi {
     required int priceCents,
     required String imageUrl,
   }) async {
-    final json = await _post('/vendors/register', {
-      'name': ownerName,
-      'email': email,
-      'password': password,
-      'serviceName': serviceName,
-      'category': _backendCategory(category),
-      'description': description,
-      'priceCents': priceCents,
-      'imageUrl': imageUrl,
-    });
-    return _userFromJson(json);
-  }
-
-  Future<Map<String, dynamic>> _post(
-    String path,
-    Map<String, dynamic> body,
-  ) async {
-    late final http.Response response;
-    try {
-      response = await _client.post(
-        Uri.parse('$_baseUrl$path'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
-      );
-    } catch (error) {
-      throw AuthApiException(
-        'Could not reach auth server at $_baseUrl. Start the backend, check MySQL, or run Flutter with --dart-define=API_BASE_URL=<your backend URL>. Detail: $error',
+    final normalizedEmail = email.trim().toLowerCase();
+    if (ownerName.trim().isEmpty ||
+        normalizedEmail.isEmpty ||
+        password.isEmpty ||
+        serviceName.trim().isEmpty) {
+      throw const AuthApiException(
+        'Owner name, email, password, and service name are required',
       );
     }
-    final decoded = response.body.isEmpty
-        ? <String, dynamic>{}
-        : jsonDecode(response.body) as Map<String, dynamic>;
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw AuthApiException('${decoded['error'] ?? 'Authentication failed'}');
-    }
-    return decoded;
-  }
-
-  AppUser _userFromJson(Map<String, dynamic> json) {
-    return AppUser(
-      id: '${json['id'] ?? json['vendorId'] ?? ''}',
-      coupleId: json['coupleId'] == null ? null : '${json['coupleId']}',
-      name: '${json['name'] ?? 'Vendor'}',
-      email: '${json['email'] ?? ''}',
-      role: _roleFromJson('${json['role']}'),
-      token: json['token'] == null ? null : '${json['token']}',
+    return _localUser(
+      id: 'vendor-${normalizedEmail.hashCode.abs()}',
+      name: ownerName.trim(),
+      email: normalizedEmail,
+      role: UserRole.vendor,
     );
   }
 
-  UserRole _roleFromJson(String value) => switch (value) {
-    'bride' => UserRole.bride,
-    'groom' => UserRole.groom,
-    'vendor' => UserRole.vendor,
-    'admin' => UserRole.admin,
-    _ => UserRole.bride,
-  };
+  AppUser _localUser({
+    required String id,
+    required String name,
+    required String email,
+    required UserRole role,
+    String? coupleId,
+  }) {
+    return AppUser(
+      id: id,
+      coupleId: coupleId ?? (role == UserRole.vendor ? null : 'couple-1'),
+      name: name,
+      email: email,
+      role: role,
+      token: 'local-auth-token',
+    );
+  }
 
-  String _backendCategory(VendorCategory category) => switch (category) {
-    VendorCategory.gowns => 'bridal_gown',
-    VendorCategory.catering => 'catering',
-    VendorCategory.venue => 'venue',
-    VendorCategory.photography => 'vendor',
-    VendorCategory.decor => 'vendor',
-    VendorCategory.music => 'vendor',
-  };
+  String _nameFromEmail(String email) {
+    final localPart = email.split('@').first;
+    if (localPart.isEmpty) return 'Hitched User';
+    return localPart
+        .split(RegExp(r'[._-]+'))
+        .where((part) => part.isNotEmpty)
+        .map((part) => '${part[0].toUpperCase()}${part.substring(1)}')
+        .join(' ');
+  }
+
+  UserRole _roleFromEmail(String email) {
+    if (email.contains('vendor')) return UserRole.vendor;
+    if (email.contains('groom')) return UserRole.groom;
+    if (email.contains('admin')) return UserRole.admin;
+    return UserRole.bride;
+  }
 }
+
+final _demoUsers = <String, AppUser>{
+  'bride@hitched.app': const AppUser(
+    id: 'bride-1',
+    coupleId: 'couple-1',
+    name: 'Amara Belle',
+    email: 'bride@hitched.app',
+    role: UserRole.bride,
+    token: 'local-auth-token',
+  ),
+  'groom@hitched.app': const AppUser(
+    id: 'groom-1',
+    coupleId: 'couple-1',
+    name: 'Daniel Hart',
+    email: 'groom@hitched.app',
+    role: UserRole.groom,
+    token: 'local-auth-token',
+  ),
+  'vendor@hitched.app': const AppUser(
+    id: 'vendor-1',
+    name: 'Tara Studios',
+    email: 'vendor@hitched.app',
+    role: UserRole.vendor,
+    token: 'local-auth-token',
+  ),
+};
