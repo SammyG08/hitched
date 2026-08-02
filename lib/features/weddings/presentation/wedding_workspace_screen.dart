@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../auth/presentation/auth_controller.dart';
+import '../../dashboard/presentation/dashboard_overview.dart';
 import '../domain/wedding.dart';
 import 'wedding_workspace_controller.dart';
 
@@ -90,12 +91,7 @@ class _PopulatedWorkspace extends ConsumerWidget {
             const SizedBox(height: 24),
             _WeddingHero(wedding: wedding),
             const SizedBox(height: 28),
-            Text(
-              'Plan together',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 16),
-            const _FeatureGrid(),
+            const DashboardOverview(),
           ],
         ),
       ),
@@ -161,54 +157,6 @@ class _WeddingHero extends StatelessWidget {
     if (days < 0) return 'Your wedding day has passed';
     if (days == 0) return 'Today is the day!';
     return '$days days to go';
-  }
-}
-
-class _FeatureGrid extends StatelessWidget {
-  const _FeatureGrid();
-
-  static const features = [
-    (Icons.checklist_rounded, 'Tasks'),
-    (Icons.groups_2_outlined, 'Guests'),
-    (Icons.account_balance_wallet_outlined, 'Budget'),
-    (Icons.storefront_outlined, 'Vendors'),
-    (Icons.event_note_outlined, 'Schedule'),
-    (Icons.mail_outline_rounded, 'Invitations'),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 1.7,
-      ),
-      itemCount: features.length,
-      itemBuilder: (context, index) {
-        final feature = features[index];
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Icon(feature.$1, color: Theme.of(context).colorScheme.primary),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    feature.$2,
-                    style: const TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
   }
 }
 

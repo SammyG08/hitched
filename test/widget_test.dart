@@ -5,9 +5,12 @@ import 'package:hitched/app/app.dart';
 import 'package:hitched/features/auth/domain/app_user.dart';
 import 'package:hitched/features/auth/domain/auth_repository.dart';
 import 'package:hitched/features/auth/presentation/auth_controller.dart';
+import 'package:hitched/features/dashboard/presentation/dashboard_controller.dart';
 import 'package:hitched/features/weddings/domain/wedding.dart';
 import 'package:hitched/features/weddings/domain/wedding_repository.dart';
 import 'package:hitched/features/weddings/presentation/wedding_workspace_controller.dart';
+
+import 'support/dashboard_fixture.dart';
 
 void main() {
   testWidgets('user can sign in and reach the authenticated home screen', (
@@ -20,6 +23,9 @@ void main() {
           weddingRepositoryProvider.overrideWithValue(_FakeWeddingRepository()),
           weddingSelectionStorageProvider.overrideWithValue(
             _FakeWeddingSelectionStorage(),
+          ),
+          dashboardRepositoryProvider.overrideWithValue(
+            FakeDashboardRepository(),
           ),
         ],
         child: const HitchedApp(),
@@ -42,7 +48,8 @@ void main() {
 
     expect(find.text('Hi, Alex'), findsOneWidget);
     expect(find.text('Alex & Jamie'), findsWidgets);
-    expect(find.text('Plan together'), findsOneWidget);
+    expect(find.text('Overview'), findsOneWidget);
+    expect(find.text('Confirm photographer'), findsOneWidget);
   });
 }
 
