@@ -123,6 +123,7 @@ class _MetricGrid extends StatelessWidget {
               value: '${dashboard.vendors.booked}/${dashboard.vendors.total}',
               detail: '${dashboard.vendors.contractsSigned} contracts signed',
               progress: vendorProgress,
+              onTap: () => context.push('/vendors'),
             ),
           ],
         );
