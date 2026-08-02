@@ -9,9 +9,7 @@ import '../../features/weddings/presentation/create_wedding_screen.dart';
 import '../../features/weddings/presentation/wedding_workspace_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authControllerProvider);
-
-  return GoRouter(
+  final router = GoRouter(
     initialLocation: '/launch',
     routes: [
       GoRoute(path: '/launch', builder: (_, _) => const LaunchScreen()),
@@ -24,11 +22,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
     ],
     redirect: (context, state) {
+      final authState = ref.read(authControllerProvider);
       final location = state.matchedLocation;
       final isAuthRoute = location == '/login' || location == '/register';
 
       if (authState.isLoading) {
-        return location == '/launch' ? null : '/launch';
+        // Keep auth forms mounted so they can display request failures.
+        return location == '/launch' || isAuthRoute ? null : '/launch';
       }
 
       final isAuthenticated =
@@ -38,4 +38,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       return null;
     },
   );
+
+  // Refresh redirects without replacing the router and losing its location.
+  ref.listen(authControllerProvider, (_, _) => router.refresh());
+  ref.onDispose(router.dispose);
+  return router;
 });

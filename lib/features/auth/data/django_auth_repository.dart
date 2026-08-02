@@ -69,9 +69,13 @@ class DjangoAuthRepository implements AuthRepository {
           'email': email.trim().toLowerCase(),
           'password': password,
         },
+        options: Options(
+          contentType: Headers.jsonContentType, // Adds 'application/json'
+        ),
       );
       return login(email: email, password: password);
     } on DioException catch (error) {
+      // print(error.response?.data);
       throw ApiException.fromDio(error);
     }
   }
