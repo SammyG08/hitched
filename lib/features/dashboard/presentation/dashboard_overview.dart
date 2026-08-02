@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../domain/dashboard.dart';
 import 'dashboard_controller.dart';
@@ -88,6 +89,7 @@ class _MetricGrid extends StatelessWidget {
                   ? '${dashboard.tasks.completionPercentage.toStringAsFixed(0)}% complete'
                   : '${dashboard.tasks.overdue} overdue',
               progress: taskProgress,
+              onTap: () => context.push('/tasks'),
             ),
             _MetricCard(
               width: cardWidth,
@@ -135,6 +137,7 @@ class _MetricCard extends StatelessWidget {
     required this.value,
     required this.detail,
     required this.progress,
+    this.onTap,
   });
 
   final double width;
@@ -143,6 +146,7 @@ class _MetricCard extends StatelessWidget {
   final String value;
   final String detail;
   final double progress;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -150,49 +154,53 @@ class _MetricCard extends StatelessWidget {
       width: width,
       child: Card(
         margin: EdgeInsets.zero,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    icon,
-                    size: 20,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      label,
-                      style: const TextStyle(fontWeight: FontWeight.w700),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      icon,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Text(
-                value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                detail,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: 12),
-              LinearProgressIndicator(
-                value: progress.clamp(0, 1).toDouble(),
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ],
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        label,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  detail,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 12),
+                LinearProgressIndicator(
+                  value: progress.clamp(0, 1).toDouble(),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ],
+            ),
           ),
         ),
       ),

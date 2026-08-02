@@ -27,9 +27,8 @@ class DjangoTaskRepository implements TaskRepository {
         final results = data['results'] as List<dynamic>;
         tasks.addAll(
           results.map(
-            (item) => WeddingTask.fromJson(
-              Map<String, dynamic>.from(item as Map),
-            ),
+            (item) =>
+                WeddingTask.fromJson(Map<String, dynamic>.from(item as Map)),
           ),
         );
         nextUrl = data['next'] as String?;

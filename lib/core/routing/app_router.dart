@@ -5,6 +5,8 @@ import '../../features/auth/presentation/auth_controller.dart';
 import '../../features/auth/presentation/launch_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
+import '../../features/tasks/presentation/task_form_screen.dart';
+import '../../features/tasks/presentation/task_list_screen.dart';
 import '../../features/weddings/presentation/create_wedding_screen.dart';
 import '../../features/weddings/presentation/wedding_workspace_screen.dart';
 
@@ -19,6 +21,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/weddings/new',
         builder: (_, _) => const CreateWeddingScreen(),
+      ),
+      GoRoute(path: '/tasks', builder: (_, _) => const TaskListScreen()),
+      GoRoute(path: '/tasks/new', builder: (_, _) => const TaskFormScreen()),
+      GoRoute(
+        path: '/tasks/:taskId/edit',
+        builder: (_, state) =>
+            TaskFormScreen(taskId: int.parse(state.pathParameters['taskId']!)),
       ),
     ],
     redirect: (context, state) {

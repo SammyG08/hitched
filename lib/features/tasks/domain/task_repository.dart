@@ -5,11 +5,7 @@ abstract interface class TaskRepository {
 
   Future<WeddingTask> createTask(int weddingId, TaskDraft draft);
 
-  Future<WeddingTask> updateTask(
-    int weddingId,
-    int taskId,
-    TaskDraft draft,
-  );
+  Future<WeddingTask> updateTask(int weddingId, int taskId, TaskDraft draft);
 
   Future<WeddingTask> updateStatus(
     int weddingId,

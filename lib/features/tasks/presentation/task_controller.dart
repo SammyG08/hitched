@@ -24,7 +24,12 @@ class TaskListState {
     this.actionError,
   });
 
-  const TaskListState.empty() : tasks = const [];
+  const TaskListState.empty()
+    : tasks = const [],
+      statusFilter = null,
+      query = '',
+      isMutating = false,
+      actionError = null;
 
   final List<WeddingTask> tasks;
   final WeddingTaskStatus? statusFilter;
@@ -34,16 +39,19 @@ class TaskListState {
 
   List<WeddingTask> get visibleTasks {
     final normalizedQuery = query.trim().toLowerCase();
-    return tasks.where((task) {
-      final matchesStatus = statusFilter == null || task.status == statusFilter;
-      final searchable = [
-        task.title,
-        task.description,
-        task.assignee?.user.displayName ?? '',
-      ].join(' ').toLowerCase();
-      return matchesStatus &&
-          (normalizedQuery.isEmpty || searchable.contains(normalizedQuery));
-    }).toList(growable: false);
+    return tasks
+        .where((task) {
+          final matchesStatus =
+              statusFilter == null || task.status == statusFilter;
+          final searchable = [
+            task.title,
+            task.description,
+            task.assignee?.user.displayName ?? '',
+          ].join(' ').toLowerCase();
+          return matchesStatus &&
+              (normalizedQuery.isEmpty || searchable.contains(normalizedQuery));
+        })
+        .toList(growable: false);
   }
 
   TaskListState copyWith({
@@ -57,7 +65,9 @@ class TaskListState {
   }) {
     return TaskListState(
       tasks: tasks ?? this.tasks,
-      statusFilter: clearStatusFilter ? null : statusFilter ?? this.statusFilter,
+      statusFilter: clearStatusFilter
+          ? null
+          : statusFilter ?? this.statusFilter,
       query: query ?? this.query,
       isMutating: isMutating ?? this.isMutating,
       actionError: clearActionError ? null : actionError ?? this.actionError,
@@ -68,11 +78,8 @@ class TaskListState {
 class TaskController extends AsyncNotifier<TaskListState> {
   TaskRepository get _repository => ref.read(taskRepositoryProvider);
 
-  int? get _weddingId => ref
-      .read(weddingWorkspaceProvider)
-      .value
-      ?.selectedWedding
-      ?.id;
+  int? get _weddingId =>
+      ref.read(weddingWorkspaceProvider).value?.selectedWedding?.id;
 
   @override
   Future<TaskListState> build() async {

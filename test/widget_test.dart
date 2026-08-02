@@ -6,11 +6,13 @@ import 'package:hitched/features/auth/domain/app_user.dart';
 import 'package:hitched/features/auth/domain/auth_repository.dart';
 import 'package:hitched/features/auth/presentation/auth_controller.dart';
 import 'package:hitched/features/dashboard/presentation/dashboard_controller.dart';
+import 'package:hitched/features/tasks/presentation/task_controller.dart';
 import 'package:hitched/features/weddings/domain/wedding.dart';
 import 'package:hitched/features/weddings/domain/wedding_repository.dart';
 import 'package:hitched/features/weddings/presentation/wedding_workspace_controller.dart';
 
 import 'support/dashboard_fixture.dart';
+import 'support/task_fixture.dart';
 
 void main() {
   testWidgets('user can sign in and reach the authenticated home screen', (
@@ -27,6 +29,7 @@ void main() {
           dashboardRepositoryProvider.overrideWithValue(
             FakeDashboardRepository(),
           ),
+          taskRepositoryProvider.overrideWithValue(FakeTaskRepository()),
         ],
         child: const HitchedApp(),
       ),
@@ -50,6 +53,12 @@ void main() {
     expect(find.text('Alex & Jamie'), findsWidgets);
     expect(find.text('Overview'), findsOneWidget);
     expect(find.text('Confirm photographer'), findsOneWidget);
+
+    await tester.tap(find.text('Tasks'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Alex & Jamie tasks'), findsOneWidget);
+    expect(find.text('Book venue'), findsOneWidget);
   });
 }
 
