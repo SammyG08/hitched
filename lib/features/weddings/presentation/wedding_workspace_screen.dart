@@ -1,0 +1,294 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../auth/presentation/auth_controller.dart';
+import '../domain/wedding.dart';
+import 'wedding_workspace_controller.dart';
+
+class WeddingWorkspaceScreen extends ConsumerWidget {
+  const WeddingWorkspaceScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final workspace = ref.watch(weddingWorkspaceProvider);
+    return workspace.when(
+      loading: () => const _LoadingWorkspace(),
+      error: (error, _) => _WorkspaceError(
+        onRetry: () => ref.read(weddingWorkspaceProvider.notifier).refresh(),
+      ),
+      data: (data) => data.selectedWedding == null
+          ? const _EmptyWorkspace()
+          : _PopulatedWorkspace(state: data),
+    );
+  }
+}
+
+class _PopulatedWorkspace extends ConsumerWidget {
+  const _PopulatedWorkspace({required this.state});
+
+  final WeddingWorkspaceState state;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authControllerProvider).requireValue!;
+    final wedding = state.selectedWedding!;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: DropdownButtonHideUnderline(
+          child: DropdownButton<Wedding>(
+            value: wedding,
+            borderRadius: BorderRadius.circular(16),
+            items: state.weddings
+                .map(
+                  (item) => DropdownMenuItem(
+                    value: item,
+                    child: Text(item.name, overflow: TextOverflow.ellipsis),
+                  ),
+                )
+                .toList(),
+            onChanged: (item) {
+              if (item != null) {
+                ref.read(weddingWorkspaceProvider.notifier).selectWedding(item);
+              }
+            },
+          ),
+        ),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (action) {
+              if (action == 'logout') {
+                ref.read(authControllerProvider.notifier).logout();
+              }
+            },
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: 'logout', child: Text('Sign out')),
+            ],
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/weddings/new'),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Wedding'),
+      ),
+      body: RefreshIndicator(
+        onRefresh: () => ref.read(weddingWorkspaceProvider.notifier).refresh(),
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 100),
+          children: [
+            Text(
+              user.firstName.isEmpty ? 'Welcome back' : 'Hi, ${user.firstName}',
+              style: Theme.of(context).textTheme.displaySmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Here is the shape of your celebration today.',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 24),
+            _WeddingHero(wedding: wedding),
+            const SizedBox(height: 28),
+            Text(
+              'Plan together',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 16),
+            const _FeatureGrid(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _WeddingHero extends StatelessWidget {
+  const _WeddingHero({required this.wedding});
+
+  final Wedding wedding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF9D4E62), Color(0xFFC77A8D)],
+        ),
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            wedding.name,
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(color: Colors.white),
+          ),
+          if (wedding.location.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              wedding.location,
+              style: const TextStyle(color: Colors.white70, fontSize: 16),
+            ),
+          ],
+          const SizedBox(height: 24),
+          Text(
+            _countdownLabel(wedding.weddingDate),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${wedding.memberCount} planner${wedding.memberCount == 1 ? '' : 's'} · ${wedding.currentUserRole}',
+            style: const TextStyle(color: Colors.white70),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _countdownLabel(DateTime? date) {
+    if (date == null) return 'Date to be decided';
+    final today = DateTime.now();
+    final start = DateTime(today.year, today.month, today.day);
+    final days = date.difference(start).inDays;
+    if (days < 0) return 'Your wedding day has passed';
+    if (days == 0) return 'Today is the day!';
+    return '$days days to go';
+  }
+}
+
+class _FeatureGrid extends StatelessWidget {
+  const _FeatureGrid();
+
+  static const features = [
+    (Icons.checklist_rounded, 'Tasks'),
+    (Icons.groups_2_outlined, 'Guests'),
+    (Icons.account_balance_wallet_outlined, 'Budget'),
+    (Icons.storefront_outlined, 'Vendors'),
+    (Icons.event_note_outlined, 'Schedule'),
+    (Icons.mail_outline_rounded, 'Invitations'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 1.7,
+      ),
+      itemCount: features.length,
+      itemBuilder: (context, index) {
+        final feature = features[index];
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(feature.$1, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    feature.$2,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _EmptyWorkspace extends StatelessWidget {
+  const _EmptyWorkspace();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Hitched')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.favorite_outline_rounded, size: 72),
+                const SizedBox(height: 24),
+                Text(
+                  'Let’s create your wedding',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Your tasks, guests, budget, vendors, and schedule will all live here.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 28),
+                FilledButton.icon(
+                  onPressed: () => context.push('/weddings/new'),
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('Create wedding'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LoadingWorkspace extends StatelessWidget {
+  const _LoadingWorkspace();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+  }
+}
+
+class _WorkspaceError extends StatelessWidget {
+  const _WorkspaceError({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.cloud_off_outlined, size: 56),
+              const SizedBox(height: 16),
+              const Text('We could not load your weddings.'),
+              const SizedBox(height: 16),
+              OutlinedButton(
+                onPressed: onRetry,
+                child: const Text('Try again'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
