@@ -5,6 +5,10 @@ import '../../features/auth/presentation/auth_controller.dart';
 import '../../features/auth/presentation/launch_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
+import '../../features/budget/presentation/budget_category_form_screen.dart';
+import '../../features/budget/presentation/budget_expense_form_screen.dart';
+import '../../features/budget/presentation/budget_screen.dart';
+import '../../features/budget/presentation/budget_setup_screen.dart';
 import '../../features/guests/presentation/guest_form_screen.dart';
 import '../../features/guests/presentation/guest_list_screen.dart';
 import '../../features/guests/presentation/household_form_screen.dart';
@@ -55,6 +59,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/guests/:guestId/edit',
         builder: (_, state) => GuestFormScreen(
           guestId: int.parse(state.pathParameters['guestId']!),
+        ),
+      ),
+      GoRoute(path: '/budget', builder: (_, _) => const BudgetScreen()),
+      GoRoute(
+        path: '/budget/setup',
+        builder: (_, _) => const BudgetSetupScreen(),
+      ),
+      GoRoute(
+        path: '/budget/categories/new',
+        builder: (_, _) => const BudgetCategoryFormScreen(),
+      ),
+      GoRoute(
+        path: '/budget/categories/:categoryId/edit',
+        builder: (_, state) => BudgetCategoryFormScreen(
+          categoryId: int.parse(state.pathParameters['categoryId']!),
+        ),
+      ),
+      GoRoute(
+        path: '/budget/expenses/new',
+        builder: (_, _) => const BudgetExpenseFormScreen(),
+      ),
+      GoRoute(
+        path: '/budget/expenses/:expenseId/edit',
+        builder: (_, state) => BudgetExpenseFormScreen(
+          expenseId: int.parse(state.pathParameters['expenseId']!),
         ),
       ),
     ],

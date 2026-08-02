@@ -5,6 +5,7 @@ import 'package:hitched/app/app.dart';
 import 'package:hitched/features/auth/domain/app_user.dart';
 import 'package:hitched/features/auth/domain/auth_repository.dart';
 import 'package:hitched/features/auth/presentation/auth_controller.dart';
+import 'package:hitched/features/budget/presentation/budget_controller.dart';
 import 'package:hitched/features/dashboard/presentation/dashboard_controller.dart';
 import 'package:hitched/features/guests/presentation/guest_controller.dart';
 import 'package:hitched/features/tasks/presentation/task_controller.dart';
@@ -13,6 +14,7 @@ import 'package:hitched/features/weddings/domain/wedding_repository.dart';
 import 'package:hitched/features/weddings/presentation/wedding_workspace_controller.dart';
 
 import 'support/dashboard_fixture.dart';
+import 'support/budget_fixture.dart';
 import 'support/guest_fixture.dart';
 import 'support/task_fixture.dart';
 
@@ -33,6 +35,7 @@ void main() {
           ),
           taskRepositoryProvider.overrideWithValue(FakeTaskRepository()),
           guestRepositoryProvider.overrideWithValue(FakeGuestRepository()),
+          budgetRepositoryProvider.overrideWithValue(FakeBudgetRepository()),
         ],
         child: const HitchedApp(),
       ),
@@ -70,6 +73,18 @@ void main() {
 
     expect(find.text('The Morgan Family'), findsOneWidget);
     expect(find.text('Robin Morgan'), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView).first, const Offset(0, -200));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Budget'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Alex & Jamie budget'), findsOneWidget);
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -500));
+    await tester.pumpAndSettle();
+    expect(find.text('Venue deposit'), findsOneWidget);
   });
 }
 

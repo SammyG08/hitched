@@ -114,6 +114,7 @@ class _MetricGrid extends StatelessWidget {
                   ? '${_money(dashboard.budget.remainingAmount, dashboard.budget.currency)} remaining'
                   : 'Create your budget',
               progress: budgetProgress,
+              onTap: () => context.push('/budget'),
             ),
             _MetricCard(
               width: cardWidth,
