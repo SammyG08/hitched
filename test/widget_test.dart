@@ -128,6 +128,17 @@ void main() {
 
     expect(find.text('People and invitations'), findsOneWidget);
     expect(find.text('jamie@example.com'), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(PopupMenuButton<String>).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Wedding settings'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Wedding settings'), findsOneWidget);
+    expect(find.text('Save wedding'), findsOneWidget);
+    expect(find.text('Delete wedding'), findsOneWidget);
   });
 }
 

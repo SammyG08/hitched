@@ -2,12 +2,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/presentation/auth_controller.dart';
 import '../data/django_wedding_repository.dart';
+import '../data/django_wedding_settings_repository.dart';
 import '../data/secure_wedding_selection_storage.dart';
 import '../domain/wedding.dart';
 import '../domain/wedding_repository.dart';
+import '../domain/wedding_settings_repository.dart';
 
 final weddingRepositoryProvider = Provider<WeddingRepository>((ref) {
   return DjangoWeddingRepository(ref.watch(apiClientProvider));
+});
+
+final weddingSettingsRepositoryProvider = Provider<WeddingSettingsRepository>((
+  ref,
+) {
+  return DjangoWeddingSettingsRepository(ref.watch(apiClientProvider));
 });
 
 final weddingSelectionStorageProvider = Provider<WeddingSelectionStorage>((
@@ -60,6 +68,8 @@ class WeddingWorkspaceController extends AsyncNotifier<WeddingWorkspaceState> {
   WeddingRepository get _repository => ref.read(weddingRepositoryProvider);
   WeddingSelectionStorage get _selectionStorage =>
       ref.read(weddingSelectionStorageProvider);
+  WeddingSettingsRepository get _settingsRepository =>
+      ref.read(weddingSettingsRepositoryProvider);
 
   int get _userId => ref.read(authControllerProvider).requireValue!.id;
 
@@ -120,6 +130,70 @@ class WeddingWorkspaceController extends AsyncNotifier<WeddingWorkspaceState> {
       state = AsyncData(
         WeddingWorkspaceState(weddings: updated, selectedWedding: wedding),
       );
+      return true;
+    } catch (error) {
+      state = AsyncData(
+        current.copyWith(isCreating: false, actionError: error),
+      );
+      return false;
+    }
+  }
+
+  Future<bool> updateSelectedWedding({
+    required String name,
+    required String location,
+    DateTime? weddingDate,
+  }) async {
+    final current = state.requireValue;
+    final selected = current.selectedWedding;
+    if (selected == null) return false;
+    state = AsyncData(
+      current.copyWith(isCreating: true, clearActionError: true),
+    );
+    try {
+      final updated = await _settingsRepository.updateWedding(
+        selected.id,
+        name: name,
+        location: location,
+        weddingDate: weddingDate,
+      );
+      final weddings = current.weddings
+          .map((wedding) => wedding.id == updated.id ? updated : wedding)
+          .toList(growable: false);
+      state = AsyncData(
+        WeddingWorkspaceState(weddings: weddings, selectedWedding: updated),
+      );
+      return true;
+    } catch (error) {
+      state = AsyncData(
+        current.copyWith(isCreating: false, actionError: error),
+      );
+      return false;
+    }
+  }
+
+  Future<bool> deleteSelectedWedding() async {
+    final current = state.requireValue;
+    final selected = current.selectedWedding;
+    if (selected == null || !selected.isOwner) return false;
+    state = AsyncData(
+      current.copyWith(isCreating: true, clearActionError: true),
+    );
+    try {
+      await _settingsRepository.deleteWedding(selected.id);
+      final weddings = current.weddings
+          .where((wedding) => wedding.id != selected.id)
+          .toList(growable: false);
+      if (weddings.isEmpty) {
+        await _selectionStorage.clearSelectedWeddingId(_userId);
+        state = const AsyncData(WeddingWorkspaceState.empty());
+      } else {
+        final next = weddings.first;
+        await _selectionStorage.saveSelectedWeddingId(_userId, next.id);
+        state = AsyncData(
+          WeddingWorkspaceState(weddings: weddings, selectedWedding: next),
+        );
+      }
       return true;
     } catch (error) {
       state = AsyncData(

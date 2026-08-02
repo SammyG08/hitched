@@ -65,9 +65,12 @@ class _PopulatedWorkspace extends ConsumerWidget {
                 context.push('/collaboration');
               } else if (action == 'accept_invitation') {
                 context.push('/invite');
+              } else if (action == 'settings') {
+                context.push('/weddings/settings');
               }
             },
             itemBuilder: (_) => const [
+              PopupMenuItem(value: 'settings', child: Text('Wedding settings')),
               PopupMenuItem(
                 value: 'collaboration',
                 child: Text('People and invitations'),

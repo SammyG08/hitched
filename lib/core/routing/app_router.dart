@@ -22,6 +22,7 @@ import '../../features/tasks/presentation/task_list_screen.dart';
 import '../../features/vendors/presentation/vendor_form_screen.dart';
 import '../../features/vendors/presentation/vendor_list_screen.dart';
 import '../../features/weddings/presentation/create_wedding_screen.dart';
+import '../../features/weddings/presentation/wedding_settings_screen.dart';
 import '../../features/weddings/presentation/wedding_workspace_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -43,6 +44,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/weddings/new',
         builder: (_, _) => const CreateWeddingScreen(),
+      ),
+      GoRoute(
+        path: '/weddings/settings',
+        builder: (_, _) => const WeddingSettingsScreen(),
       ),
       GoRoute(path: '/tasks', builder: (_, _) => const TaskListScreen()),
       GoRoute(path: '/tasks/new', builder: (_, _) => const TaskFormScreen()),

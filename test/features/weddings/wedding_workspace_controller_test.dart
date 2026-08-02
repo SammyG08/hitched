@@ -5,6 +5,7 @@ import 'package:hitched/features/auth/domain/auth_repository.dart';
 import 'package:hitched/features/auth/presentation/auth_controller.dart';
 import 'package:hitched/features/weddings/domain/wedding.dart';
 import 'package:hitched/features/weddings/domain/wedding_repository.dart';
+import 'package:hitched/features/weddings/domain/wedding_settings_repository.dart';
 import 'package:hitched/features/weddings/presentation/wedding_workspace_controller.dart';
 
 void main() {
@@ -16,6 +17,9 @@ void main() {
         authRepositoryProvider.overrideWithValue(_AuthenticatedRepository()),
         weddingRepositoryProvider.overrideWithValue(repository),
         weddingSelectionStorageProvider.overrideWithValue(selectionStorage),
+        weddingSettingsRepositoryProvider.overrideWithValue(
+          _FakeWeddingSettingsRepository(),
+        ),
       ],
     );
     addTearDown(container.dispose);
@@ -44,6 +48,54 @@ void main() {
       container.read(weddingWorkspaceProvider).requireValue.selectedWedding?.id,
       3,
     );
+  });
+
+  test('updates details and selects another wedding after deletion', () async {
+    final repository = _FakeWeddingRepository();
+    final settingsRepository = _FakeWeddingSettingsRepository();
+    final selectionStorage = _FakeSelectionStorage()..selectedId = 1;
+    final container = ProviderContainer(
+      overrides: [
+        authRepositoryProvider.overrideWithValue(_AuthenticatedRepository()),
+        weddingRepositoryProvider.overrideWithValue(repository),
+        weddingSettingsRepositoryProvider.overrideWithValue(settingsRepository),
+        weddingSelectionStorageProvider.overrideWithValue(selectionStorage),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await container.read(authControllerProvider.future);
+    await container.read(weddingWorkspaceProvider.future);
+    expect(
+      await container
+          .read(weddingWorkspaceProvider.notifier)
+          .updateSelectedWedding(
+            name: 'Garden celebration',
+            location: 'Kumasi',
+            weddingDate: DateTime(2028, 5, 20),
+          ),
+      isTrue,
+    );
+    expect(
+      container
+          .read(weddingWorkspaceProvider)
+          .requireValue
+          .selectedWedding
+          ?.name,
+      'Garden celebration',
+    );
+
+    expect(
+      await container
+          .read(weddingWorkspaceProvider.notifier)
+          .deleteSelectedWedding(),
+      isTrue,
+    );
+    final remaining = container.read(weddingWorkspaceProvider).requireValue;
+    expect(remaining.weddings, hasLength(1));
+    expect(remaining.selectedWedding?.id, 2);
+    expect(selectionStorage.selectedId, 2);
+    expect(settingsRepository.deletedIds, [1]);
   });
 }
 
@@ -128,5 +180,31 @@ class _FakeSelectionStorage implements WeddingSelectionStorage {
   @override
   Future<void> saveSelectedWeddingId(int userId, int weddingId) async {
     selectedId = weddingId;
+  }
+}
+
+class _FakeWeddingSettingsRepository implements WeddingSettingsRepository {
+  final deletedIds = <int>[];
+
+  @override
+  Future<Wedding> updateWedding(
+    int weddingId, {
+    required String name,
+    required String location,
+    DateTime? weddingDate,
+  }) async {
+    return Wedding(
+      id: weddingId,
+      name: name,
+      location: location,
+      weddingDate: weddingDate,
+      currentUserRole: 'owner',
+      memberCount: 1,
+    );
+  }
+
+  @override
+  Future<void> deleteWedding(int weddingId) async {
+    deletedIds.add(weddingId);
   }
 }
