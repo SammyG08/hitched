@@ -25,7 +25,12 @@ WeddingInvitation invitationFixture({
 }
 
 class FakeCollaborationRepository implements CollaborationRepository {
+  List<WeddingInvitation> pendingInvitations = [];
   final invitations = <WeddingInvitation>[invitationFixture()];
+
+  @override
+  Future<List<WeddingInvitation>> fetchMyPendingInvitations() async =>
+      pendingInvitations;
 
   @override
   Future<List<WeddingInvitation>> fetchInvitations(int weddingId) async =>

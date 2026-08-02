@@ -14,6 +14,24 @@ class DjangoCollaborationRepository implements CollaborationRepository {
   String _invitations(int weddingId) => '/weddings/$weddingId/invitations/';
 
   @override
+  Future<List<WeddingInvitation>> fetchMyPendingInvitations() async {
+    try {
+      final response = await _dio.get<List<dynamic>>(
+        '/weddings/invitations/pending/',
+      );
+      return response.data!
+          .map(
+            (item) => WeddingInvitation.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ),
+          )
+          .toList(growable: false);
+    } on DioException catch (error) {
+      throw ApiException.fromDio(error);
+    }
+  }
+
+  @override
   Future<List<WeddingInvitation>> fetchInvitations(int weddingId) async {
     try {
       final response = await _dio.get<List<dynamic>>(_invitations(weddingId));

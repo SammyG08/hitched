@@ -9,6 +9,7 @@ import '../../auth/presentation/auth_controller.dart';
 import '../../dashboard/presentation/dashboard_overview.dart';
 import '../domain/wedding.dart';
 import 'wedding_workspace_controller.dart';
+import 'wedding_onboarding_screen.dart';
 
 class WeddingWorkspaceScreen extends ConsumerWidget {
   const WeddingWorkspaceScreen({super.key});
@@ -22,7 +23,7 @@ class WeddingWorkspaceScreen extends ConsumerWidget {
         onRetry: () => ref.read(weddingWorkspaceProvider.notifier).refresh(),
       ),
       data: (data) => data.selectedWedding == null
-          ? const _EmptyWorkspace()
+          ? const WeddingOnboardingScreen()
           : _PopulatedWorkspace(state: data),
     );
   }
@@ -156,6 +157,21 @@ class _WeddingHero extends StatelessWidget {
       ),
       child: Stack(
         children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/wedding_table_hero.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xE663364A), Color(0x7063364A)],
+                ),
+              ),
+            ),
+          ),
           const Positioned(
             right: -22,
             top: -28,
@@ -212,6 +228,8 @@ class _WeddingHero extends StatelessWidget {
   }
 }
 
+// Kept as the compact fallback layout for narrow embedded surfaces.
+// ignore: unused_element
 class _EmptyWorkspace extends StatelessWidget {
   const _EmptyWorkspace();
 

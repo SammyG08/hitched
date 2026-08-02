@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../shared/widgets/hitched_illustration.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../weddings/presentation/wedding_workspace_controller.dart';
 import '../domain/collaboration_models.dart';
@@ -77,7 +78,7 @@ class _InvitationPreviewScreenState
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.favorite_rounded, size: 62),
+                      const HitchedIllustration.mark(width: 120, height: 80),
                       const SizedBox(height: 18),
                       Text(
                         'You are invited to plan',

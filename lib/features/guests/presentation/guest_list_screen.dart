@@ -137,8 +137,10 @@ class _HouseholdCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 0),
       child: ExpansionTile(
+        shape: const Border(),
+        collapsedShape: const Border(),
         initiallyExpanded: true,
         leading: CircleAvatar(child: Text(household.guestCount.toString())),
         title: Text(

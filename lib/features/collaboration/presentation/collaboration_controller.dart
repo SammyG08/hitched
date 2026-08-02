@@ -20,6 +20,10 @@ final invitationPreviewProvider = FutureProvider.autoDispose
           .previewInvitation(token);
     });
 
+final pendingInvitationsProvider = FutureProvider.autoDispose((ref) {
+  return ref.watch(collaborationRepositoryProvider).fetchMyPendingInvitations();
+});
+
 final collaborationProvider =
     AsyncNotifierProvider<CollaborationController, CollaborationState>(
       CollaborationController.new,

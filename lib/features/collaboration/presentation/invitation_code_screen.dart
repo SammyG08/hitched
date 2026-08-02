@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../shared/widgets/hitched_illustration.dart';
+
 class InvitationCodeScreen extends StatefulWidget {
   const InvitationCodeScreen({super.key});
 
@@ -18,7 +20,11 @@ class _InvitationCodeScreenState extends State<InvitationCodeScreen> {
   }
 
   void _continue() {
-    final token = _controller.text.trim();
+    final input = _controller.text.trim();
+    final uri = Uri.tryParse(input);
+    final token = uri != null && uri.pathSegments.isNotEmpty
+        ? uri.pathSegments.last
+        : input;
     if (token.isNotEmpty) context.push('/invite/$token');
   }
 
@@ -32,6 +38,20 @@ class _InvitationCodeScreenState extends State<InvitationCodeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const Center(
+                child: HitchedIllustration(
+                  asset: 'assets/illustrations/planning_board.svg',
+                  width: 210,
+                  height: 150,
+                  semanticLabel: 'Shared wedding planning board',
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Join their plans',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 8),
               Text(
                 'Paste the invitation code shared by the wedding owner.',
                 style: Theme.of(context).textTheme.bodyLarge,
@@ -45,6 +65,7 @@ class _InvitationCodeScreenState extends State<InvitationCodeScreen> {
                 onSubmitted: (_) => _continue(),
                 decoration: const InputDecoration(
                   labelText: 'Invitation code',
+                  hintText: 'Paste your invitation link or code',
                   prefixIcon: Icon(Icons.key_outlined),
                 ),
               ),

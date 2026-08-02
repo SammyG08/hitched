@@ -24,6 +24,9 @@ class WeddingInvitation {
     required this.status,
     required this.expiresAt,
     required this.createdAt,
+    this.weddingName = '',
+    this.weddingDate,
+    this.location = '',
     this.invitedBy,
     this.acceptedBy,
     this.acceptedAt,
@@ -32,6 +35,9 @@ class WeddingInvitation {
 
   final int id;
   final int weddingId;
+  final String weddingName;
+  final DateTime? weddingDate;
+  final String location;
   final String email;
   final String token;
   final WeddingInvitationStatus status;
@@ -46,6 +52,9 @@ class WeddingInvitation {
     return WeddingInvitation(
       id: json['id'] as int,
       weddingId: json['wedding'] as int,
+      weddingName: json['wedding_name'] as String? ?? '',
+      weddingDate: _date(json['wedding_date']),
+      location: json['location'] as String? ?? '',
       email: json['email'] as String,
       token: json['token'] as String,
       status: WeddingInvitationStatus.fromApi(json['status'] as String),
