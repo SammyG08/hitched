@@ -289,6 +289,7 @@ class _UpcomingSchedule extends StatelessWidget {
       title: 'Next on the schedule',
       icon: Icons.event_note_outlined,
       emptyMessage: 'No upcoming events.',
+      onTap: () => context.push('/schedule'),
       children: schedule.nextEvents
           .map(
             (event) => ListTile(
@@ -319,12 +320,14 @@ class _DashboardPanel extends StatelessWidget {
     required this.icon,
     required this.emptyMessage,
     required this.children,
+    this.onTap,
   });
 
   final String title;
   final IconData icon;
   final String emptyMessage;
   final List<Widget> children;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -339,7 +342,18 @@ class _DashboardPanel extends StatelessWidget {
               children: [
                 Icon(icon, color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 10),
-                Text(title, style: Theme.of(context).textTheme.titleMedium),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                if (onTap != null)
+                  IconButton(
+                    tooltip: 'Open $title',
+                    onPressed: onTap,
+                    icon: const Icon(Icons.arrow_forward_rounded),
+                  ),
               ],
             ),
             const SizedBox(height: 10),

@@ -12,6 +12,8 @@ import '../../features/budget/presentation/budget_setup_screen.dart';
 import '../../features/guests/presentation/guest_form_screen.dart';
 import '../../features/guests/presentation/guest_list_screen.dart';
 import '../../features/guests/presentation/household_form_screen.dart';
+import '../../features/schedule/presentation/schedule_event_form_screen.dart';
+import '../../features/schedule/presentation/schedule_screen.dart';
 import '../../features/tasks/presentation/task_form_screen.dart';
 import '../../features/tasks/presentation/task_list_screen.dart';
 import '../../features/vendors/presentation/vendor_form_screen.dart';
@@ -97,6 +99,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/vendors/:vendorId/edit',
         builder: (_, state) => VendorFormScreen(
           vendorId: int.parse(state.pathParameters['vendorId']!),
+        ),
+      ),
+      GoRoute(path: '/schedule', builder: (_, _) => const ScheduleScreen()),
+      GoRoute(
+        path: '/schedule/new',
+        builder: (_, _) => const ScheduleEventFormScreen(),
+      ),
+      GoRoute(
+        path: '/schedule/:eventId/edit',
+        builder: (_, state) => ScheduleEventFormScreen(
+          eventId: int.parse(state.pathParameters['eventId']!),
         ),
       ),
     ],

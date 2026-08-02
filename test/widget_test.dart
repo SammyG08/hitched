@@ -8,6 +8,7 @@ import 'package:hitched/features/auth/presentation/auth_controller.dart';
 import 'package:hitched/features/budget/presentation/budget_controller.dart';
 import 'package:hitched/features/dashboard/presentation/dashboard_controller.dart';
 import 'package:hitched/features/guests/presentation/guest_controller.dart';
+import 'package:hitched/features/schedule/presentation/schedule_controller.dart';
 import 'package:hitched/features/tasks/presentation/task_controller.dart';
 import 'package:hitched/features/vendors/presentation/vendor_controller.dart';
 import 'package:hitched/features/weddings/domain/wedding.dart';
@@ -17,6 +18,7 @@ import 'package:hitched/features/weddings/presentation/wedding_workspace_control
 import 'support/dashboard_fixture.dart';
 import 'support/budget_fixture.dart';
 import 'support/guest_fixture.dart';
+import 'support/schedule_fixture.dart';
 import 'support/task_fixture.dart';
 import 'support/vendor_fixture.dart';
 
@@ -39,6 +41,9 @@ void main() {
           guestRepositoryProvider.overrideWithValue(FakeGuestRepository()),
           budgetRepositoryProvider.overrideWithValue(FakeBudgetRepository()),
           vendorRepositoryProvider.overrideWithValue(FakeVendorRepository()),
+          scheduleRepositoryProvider.overrideWithValue(
+            FakeScheduleRepository(),
+          ),
         ],
         child: const HitchedApp(),
       ),
@@ -98,6 +103,16 @@ void main() {
 
     expect(find.text('Alex & Jamie vendors'), findsOneWidget);
     expect(find.text('Golden Spoon'), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byTooltip('Open Next on the schedule'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Open Next on the schedule'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Alex & Jamie schedule'), findsOneWidget);
+    expect(find.text('Ceremony rehearsal'), findsOneWidget);
   });
 }
 
