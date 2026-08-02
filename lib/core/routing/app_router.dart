@@ -9,6 +9,9 @@ import '../../features/budget/presentation/budget_category_form_screen.dart';
 import '../../features/budget/presentation/budget_expense_form_screen.dart';
 import '../../features/budget/presentation/budget_screen.dart';
 import '../../features/budget/presentation/budget_setup_screen.dart';
+import '../../features/collaboration/presentation/collaboration_screen.dart';
+import '../../features/collaboration/presentation/invitation_code_screen.dart';
+import '../../features/collaboration/presentation/invitation_preview_screen.dart';
 import '../../features/guests/presentation/guest_form_screen.dart';
 import '../../features/guests/presentation/guest_list_screen.dart';
 import '../../features/guests/presentation/household_form_screen.dart';
@@ -26,8 +29,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: '/launch',
     routes: [
       GoRoute(path: '/launch', builder: (_, _) => const LaunchScreen()),
-      GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
-      GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
+      GoRoute(
+        path: '/login',
+        builder: (_, state) =>
+            LoginScreen(inviteToken: state.uri.queryParameters['invite']),
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (_, state) =>
+            RegisterScreen(inviteToken: state.uri.queryParameters['invite']),
+      ),
       GoRoute(path: '/home', builder: (_, _) => const WeddingWorkspaceScreen()),
       GoRoute(
         path: '/weddings/new',
@@ -112,21 +123,41 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           eventId: int.parse(state.pathParameters['eventId']!),
         ),
       ),
+      GoRoute(
+        path: '/collaboration',
+        builder: (_, _) => const CollaborationScreen(),
+      ),
+      GoRoute(path: '/invite', builder: (_, _) => const InvitationCodeScreen()),
+      GoRoute(
+        path: '/invite/:token',
+        builder: (_, state) =>
+            InvitationPreviewScreen(token: state.pathParameters['token']!),
+      ),
     ],
     redirect: (context, state) {
       final authState = ref.read(authControllerProvider);
       final location = state.matchedLocation;
       final isAuthRoute = location == '/login' || location == '/register';
+      final isInvitationRoute =
+          location == '/invite' || location.startsWith('/invite/');
 
       if (authState.isLoading) {
         // Keep auth forms mounted so they can display request failures.
-        return location == '/launch' || isAuthRoute ? null : '/launch';
+        return location == '/launch' || isAuthRoute || isInvitationRoute
+            ? null
+            : '/launch';
       }
 
       final isAuthenticated =
           authState.hasValue && authState.requireValue != null;
-      if (!isAuthenticated) return isAuthRoute ? null : '/login';
-      if (isAuthRoute || location == '/launch') return '/home';
+      if (!isAuthenticated) {
+        return isAuthRoute || isInvitationRoute ? null : '/login';
+      }
+      if (isAuthRoute) {
+        final inviteToken = state.uri.queryParameters['invite'];
+        return inviteToken == null ? '/home' : '/invite/$inviteToken';
+      }
+      if (location == '/launch') return '/home';
       return null;
     },
   );

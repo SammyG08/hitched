@@ -8,7 +8,9 @@ import '../../../shared/widgets/submit_button.dart';
 import 'auth_controller.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({this.inviteToken, super.key});
+
+  final String? inviteToken;
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -115,7 +117,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
         const SizedBox(height: 18),
         TextButton(
-          onPressed: authState.isLoading ? null : () => context.go('/register'),
+          onPressed: authState.isLoading
+              ? null
+              : () => context.go(
+                  widget.inviteToken == null
+                      ? '/register'
+                      : '/register?invite=${Uri.encodeComponent(widget.inviteToken!)}',
+                ),
           child: const Text("New to Hitched? Create an account"),
         ),
       ],

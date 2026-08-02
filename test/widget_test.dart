@@ -6,6 +6,7 @@ import 'package:hitched/features/auth/domain/app_user.dart';
 import 'package:hitched/features/auth/domain/auth_repository.dart';
 import 'package:hitched/features/auth/presentation/auth_controller.dart';
 import 'package:hitched/features/budget/presentation/budget_controller.dart';
+import 'package:hitched/features/collaboration/presentation/collaboration_controller.dart';
 import 'package:hitched/features/dashboard/presentation/dashboard_controller.dart';
 import 'package:hitched/features/guests/presentation/guest_controller.dart';
 import 'package:hitched/features/schedule/presentation/schedule_controller.dart';
@@ -17,6 +18,7 @@ import 'package:hitched/features/weddings/presentation/wedding_workspace_control
 
 import 'support/dashboard_fixture.dart';
 import 'support/budget_fixture.dart';
+import 'support/collaboration_fixture.dart';
 import 'support/guest_fixture.dart';
 import 'support/schedule_fixture.dart';
 import 'support/task_fixture.dart';
@@ -43,6 +45,9 @@ void main() {
           vendorRepositoryProvider.overrideWithValue(FakeVendorRepository()),
           scheduleRepositoryProvider.overrideWithValue(
             FakeScheduleRepository(),
+          ),
+          collaborationRepositoryProvider.overrideWithValue(
+            FakeCollaborationRepository(),
           ),
         ],
         child: const HitchedApp(),
@@ -113,6 +118,16 @@ void main() {
 
     expect(find.text('Alex & Jamie schedule'), findsOneWidget);
     expect(find.text('Ceremony rehearsal'), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(PopupMenuButton<String>).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('People and invitations'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('People and invitations'), findsOneWidget);
+    expect(find.text('jamie@example.com'), findsOneWidget);
   });
 }
 
@@ -125,6 +140,18 @@ class _FakeWeddingRepository implements WeddingRepository {
       location: 'Accra',
       currentUserRole: 'owner',
       memberCount: 1,
+      members: [
+        WeddingMember(
+          id: 1,
+          user: WeddingMemberUser(
+            id: 1,
+            email: 'alex@example.com',
+            firstName: 'Alex',
+            lastName: 'Morgan',
+          ),
+          role: 'owner',
+        ),
+      ],
     ),
   ];
 

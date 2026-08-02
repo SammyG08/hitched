@@ -61,9 +61,21 @@ class _PopulatedWorkspace extends ConsumerWidget {
             onSelected: (action) {
               if (action == 'logout') {
                 ref.read(authControllerProvider.notifier).logout();
+              } else if (action == 'collaboration') {
+                context.push('/collaboration');
+              } else if (action == 'accept_invitation') {
+                context.push('/invite');
               }
             },
             itemBuilder: (_) => const [
+              PopupMenuItem(
+                value: 'collaboration',
+                child: Text('People and invitations'),
+              ),
+              PopupMenuItem(
+                value: 'accept_invitation',
+                child: Text('Accept invitation'),
+              ),
               PopupMenuItem(value: 'logout', child: Text('Sign out')),
             ],
           ),

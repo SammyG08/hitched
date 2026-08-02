@@ -8,7 +8,9 @@ import '../../../shared/widgets/submit_button.dart';
 import 'auth_controller.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
-  const RegisterScreen({super.key});
+  const RegisterScreen({this.inviteToken, super.key});
+
+  final String? inviteToken;
 
   @override
   ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
@@ -150,7 +152,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         ),
         const SizedBox(height: 18),
         TextButton(
-          onPressed: authState.isLoading ? null : () => context.go('/login'),
+          onPressed: authState.isLoading
+              ? null
+              : () => context.go(
+                  widget.inviteToken == null
+                      ? '/login'
+                      : '/login?invite=${Uri.encodeComponent(widget.inviteToken!)}',
+                ),
           child: const Text('Already have an account? Sign in'),
         ),
       ],
