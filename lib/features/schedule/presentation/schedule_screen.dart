@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../shared/widgets/hitched_illustration.dart';
 import '../../weddings/presentation/wedding_workspace_controller.dart';
 import '../domain/schedule_models.dart';
 import 'schedule_controller.dart';
@@ -485,7 +487,12 @@ class _EmptySchedule extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.event_note_outlined, size: 64),
+            HitchedIllustration(
+              asset: 'assets/illustrations/planning_board.svg',
+              width: 250,
+              height: 168,
+              semanticLabel: 'Wedding planning board',
+            ),
             SizedBox(height: 16),
             Text('No schedule events match this view.'),
           ],
@@ -582,9 +589,9 @@ String _duration(int minutes) {
 
 Color _statusColor(ScheduleEventStatus status) {
   return switch (status) {
-    ScheduleEventStatus.planned => Colors.blueGrey,
-    ScheduleEventStatus.confirmed => Colors.blue,
-    ScheduleEventStatus.completed => Colors.green,
-    ScheduleEventStatus.cancelled => Colors.red,
+    ScheduleEventStatus.planned => AppColors.muted,
+    ScheduleEventStatus.confirmed => AppColors.info,
+    ScheduleEventStatus.completed => AppColors.success,
+    ScheduleEventStatus.cancelled => AppColors.danger,
   };
 }

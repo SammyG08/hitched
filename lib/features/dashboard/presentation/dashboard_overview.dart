@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_colors.dart';
+import '../../../shared/widgets/entrance_animation.dart';
 import '../domain/dashboard.dart';
 import 'dashboard_controller.dart';
 
@@ -80,50 +82,62 @@ class _MetricGrid extends StatelessWidget {
           spacing: 12,
           runSpacing: 12,
           children: [
-            _MetricCard(
-              width: cardWidth,
-              icon: Icons.checklist_rounded,
-              label: 'Tasks',
-              value: '${dashboard.tasks.done}/${dashboard.tasks.total}',
-              detail: dashboard.tasks.overdue == 0
-                  ? '${dashboard.tasks.completionPercentage.toStringAsFixed(0)}% complete'
-                  : '${dashboard.tasks.overdue} overdue',
-              progress: taskProgress,
-              onTap: () => context.push('/tasks'),
+            EntranceAnimation(
+              child: _MetricCard(
+                width: cardWidth,
+                icon: Icons.checklist_rounded,
+                label: 'Tasks',
+                value: '${dashboard.tasks.done}/${dashboard.tasks.total}',
+                detail: dashboard.tasks.overdue == 0
+                    ? '${dashboard.tasks.completionPercentage.toStringAsFixed(0)}% complete'
+                    : '${dashboard.tasks.overdue} overdue',
+                progress: taskProgress,
+                onTap: () => context.push('/tasks'),
+              ),
             ),
-            _MetricCard(
-              width: cardWidth,
-              icon: Icons.groups_2_outlined,
-              label: 'Guests',
-              value: '${dashboard.guests.attending}/${dashboard.guests.total}',
-              detail: '${dashboard.guests.pending} awaiting RSVP',
-              progress: guestProgress,
-              onTap: () => context.push('/guests'),
+            EntranceAnimation(
+              delay: const Duration(milliseconds: 70),
+              child: _MetricCard(
+                width: cardWidth,
+                icon: Icons.groups_2_outlined,
+                label: 'Guests',
+                value:
+                    '${dashboard.guests.attending}/${dashboard.guests.total}',
+                detail: '${dashboard.guests.pending} awaiting RSVP',
+                progress: guestProgress,
+                onTap: () => context.push('/guests'),
+              ),
             ),
-            _MetricCard(
-              width: cardWidth,
-              icon: Icons.account_balance_wallet_outlined,
-              label: 'Budget',
-              value: dashboard.budget.configured
-                  ? _money(
-                      dashboard.budget.actualTotal,
-                      dashboard.budget.currency,
-                    )
-                  : 'Not set',
-              detail: dashboard.budget.configured
-                  ? '${_money(dashboard.budget.remainingAmount, dashboard.budget.currency)} remaining'
-                  : 'Create your budget',
-              progress: budgetProgress,
-              onTap: () => context.push('/budget'),
+            EntranceAnimation(
+              delay: const Duration(milliseconds: 140),
+              child: _MetricCard(
+                width: cardWidth,
+                icon: Icons.account_balance_wallet_outlined,
+                label: 'Budget',
+                value: dashboard.budget.configured
+                    ? _money(
+                        dashboard.budget.actualTotal,
+                        dashboard.budget.currency,
+                      )
+                    : 'Not set',
+                detail: dashboard.budget.configured
+                    ? '${_money(dashboard.budget.remainingAmount, dashboard.budget.currency)} remaining'
+                    : 'Create your budget',
+                progress: budgetProgress,
+                onTap: () => context.push('/budget'),
+              ),
             ),
-            _MetricCard(
-              width: cardWidth,
-              icon: Icons.storefront_outlined,
-              label: 'Vendors',
-              value: '${dashboard.vendors.booked}/${dashboard.vendors.total}',
-              detail: '${dashboard.vendors.contractsSigned} contracts signed',
-              progress: vendorProgress,
-              onTap: () => context.push('/vendors'),
+            EntranceAnimation(
+              delay: const Duration(milliseconds: 210),
+              child: _MetricCard(
+                width: cardWidth,
+                icon: Icons.storefront_outlined,
+                label: 'Vendors',
+                value: '${dashboard.vendors.booked}/${dashboard.vendors.total}',
+                detail: '${dashboard.vendors.contractsSigned} contracts signed',
+                progress: vendorProgress,
+                onTap: () => context.push('/vendors'),
+              ),
             ),
           ],
         );
@@ -379,9 +393,9 @@ class _PriorityDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = switch (priority) {
-      'high' => Colors.red,
-      'medium' => Colors.orange,
-      _ => Colors.green,
+      'high' => AppColors.danger,
+      'medium' => AppColors.warning,
+      _ => AppColors.success,
     };
     return Container(
       width: 12,

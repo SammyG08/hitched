@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_colors.dart';
+import '../../../shared/widgets/entrance_animation.dart';
+import '../../../shared/widgets/hitched_illustration.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../dashboard/presentation/dashboard_overview.dart';
 import '../domain/wedding.dart';
@@ -94,19 +97,32 @@ class _PopulatedWorkspace extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 16, 24, 100),
           children: [
-            Text(
-              user.firstName.isEmpty ? 'Welcome back' : 'Hi, ${user.firstName}',
-              style: Theme.of(context).textTheme.displaySmall,
+            EntranceAnimation(
+              child: Text(
+                user.firstName.isEmpty
+                    ? 'Welcome back'
+                    : 'Hi, ${user.firstName}',
+                style: Theme.of(context).textTheme.displaySmall,
+              ),
             ),
             const SizedBox(height: 8),
-            Text(
-              'Here is the shape of your celebration today.',
-              style: Theme.of(context).textTheme.bodyLarge,
+            EntranceAnimation(
+              delay: const Duration(milliseconds: 70),
+              child: Text(
+                'Here is the shape of your celebration today.',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
             ),
             const SizedBox(height: 24),
-            _WeddingHero(wedding: wedding),
+            EntranceAnimation(
+              delay: const Duration(milliseconds: 130),
+              child: _WeddingHero(wedding: wedding),
+            ),
             const SizedBox(height: 28),
-            const DashboardOverview(),
+            const EntranceAnimation(
+              delay: Duration(milliseconds: 210),
+              child: DashboardOverview(),
+            ),
           ],
         ),
       ),
@@ -122,42 +138,63 @@ class _WeddingHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF9D4E62), Color(0xFFC77A8D)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.deepPlum, AppColors.plum, AppColors.rose],
         ),
         borderRadius: BorderRadius.circular(28),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x3363364A),
+            blurRadius: 24,
+            offset: Offset(0, 12),
+          ),
+        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          Text(
-            wedding.name,
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(color: Colors.white),
+          const Positioned(
+            right: -22,
+            top: -28,
+            child: CircleAvatar(radius: 72, backgroundColor: Color(0x24EBCFA8)),
           ),
-          if (wedding.location.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              wedding.location,
-              style: const TextStyle(color: Colors.white70, fontSize: 16),
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  wedding.name,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.headlineSmall?.copyWith(color: Colors.white),
+                ),
+                if (wedding.location.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    wedding.location,
+                    style: const TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                ],
+                const SizedBox(height: 24),
+                Text(
+                  _countdownLabel(wedding.weddingDate),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${wedding.memberCount} planner${wedding.memberCount == 1 ? '' : 's'} · ${wedding.currentUserRole}',
+                  style: const TextStyle(color: Colors.white70),
+                ),
+              ],
             ),
-          ],
-          const SizedBox(height: 24),
-          Text(
-            _countdownLabel(wedding.weddingDate),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '${wedding.memberCount} planner${wedding.memberCount == 1 ? '' : 's'} · ${wedding.currentUserRole}',
-            style: const TextStyle(color: Colors.white70),
           ),
         ],
       ),
@@ -190,7 +227,12 @@ class _EmptyWorkspace extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.favorite_outline_rounded, size: 72),
+                const HitchedIllustration(
+                  asset: 'assets/illustrations/empty_wedding.svg',
+                  width: 260,
+                  height: 188,
+                  semanticLabel: 'Wedding planning checklist',
+                ),
                 const SizedBox(height: 24),
                 Text(
                   'Let’s create your wedding',

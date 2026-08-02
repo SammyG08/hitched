@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/app_colors.dart';
+import 'entrance_animation.dart';
+import 'hitched_illustration.dart';
+
 class AuthScaffold extends StatelessWidget {
   const AuthScaffold({required this.children, super.key});
 
@@ -11,9 +15,10 @@ class AuthScaffold extends StatelessWidget {
       body: DecoratedBox(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFFFF1F3), Color(0xFFFFF9F6)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [AppColors.blush, AppColors.ivory, AppColors.sageSoft],
+            stops: [0, 0.58, 1],
           ),
         ),
         child: SafeArea(
@@ -30,7 +35,14 @@ class AuthScaffold extends StatelessWidget {
                       constraints: const BoxConstraints(maxWidth: 480),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [const _BrandMark(), ...children],
+                        children: [
+                          const EntranceAnimation(child: _BrandMark()),
+                          for (var index = 0; index < children.length; index++)
+                            EntranceAnimation(
+                              delay: Duration(milliseconds: 70 + index * 45),
+                              child: children[index],
+                            ),
+                        ],
                       ),
                     ),
                   ),
@@ -51,23 +63,19 @@ class _BrandMark extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Column(
       children: [
-        CircleAvatar(
-          radius: 30,
-          backgroundColor: Color(0xFF9D4E62),
-          child: Icon(Icons.favorite_rounded, color: Colors.white, size: 30),
-        ),
-        SizedBox(height: 12),
+        HitchedIllustration.mark(),
+        SizedBox(height: 4),
         Text(
           'hitched',
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: Color(0xFF302A2C),
+            color: AppColors.deepPlum,
             fontSize: 28,
             fontWeight: FontWeight.w800,
             letterSpacing: -1,
           ),
         ),
-        SizedBox(height: 36),
+        SizedBox(height: 28),
       ],
     );
   }

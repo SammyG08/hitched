@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../shared/widgets/entrance_animation.dart';
+import '../../../shared/widgets/hitched_illustration.dart';
 import '../../weddings/presentation/wedding_workspace_controller.dart';
 import '../domain/wedding_task.dart';
 import 'task_controller.dart';
@@ -100,7 +103,10 @@ class _TaskListBody extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
               sliver: SliverList.builder(
                 itemCount: tasks.length,
-                itemBuilder: (context, index) => _TaskCard(task: tasks[index]),
+                itemBuilder: (context, index) => EntranceAnimation(
+                  delay: Duration(milliseconds: (index > 5 ? 5 : index) * 45),
+                  child: _TaskCard(task: tasks[index]),
+                ),
               ),
             ),
         ],
@@ -276,7 +282,12 @@ class _EmptyTasks extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.task_alt_rounded, size: 64),
+            HitchedIllustration(
+              asset: 'assets/illustrations/planning_board.svg',
+              width: 250,
+              height: 168,
+              semanticLabel: 'Wedding planning board',
+            ),
             SizedBox(height: 16),
             Text('No tasks match this view.'),
           ],
@@ -316,9 +327,9 @@ void _showTaskError(BuildContext context, WidgetRef ref) {
 
 Color _priorityColor(WeddingTaskPriority priority) {
   return switch (priority) {
-    WeddingTaskPriority.high => Colors.red,
-    WeddingTaskPriority.medium => Colors.orange,
-    WeddingTaskPriority.low => Colors.green,
+    WeddingTaskPriority.high => AppColors.danger,
+    WeddingTaskPriority.medium => AppColors.warning,
+    WeddingTaskPriority.low => AppColors.success,
   };
 }
 

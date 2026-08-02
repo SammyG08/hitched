@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../shared/widgets/hitched_illustration.dart';
 import '../../weddings/presentation/wedding_workspace_controller.dart';
 import '../domain/budget_models.dart';
 import 'budget_controller.dart';
@@ -49,7 +51,12 @@ class _UnconfiguredBudget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.account_balance_wallet_outlined, size: 72),
+            const HitchedIllustration(
+              asset: 'assets/illustrations/planning_board.svg',
+              width: 250,
+              height: 168,
+              semanticLabel: 'Wedding planning board',
+            ),
             const SizedBox(height: 20),
             Text(
               'Plan the money, protect the joy.',
@@ -194,7 +201,7 @@ class _BudgetHealthCard extends StatelessWidget {
             const SizedBox(height: 16),
             LinearProgressIndicator(
               value: budget.spentProgress,
-              color: overBudget ? Colors.red : null,
+              color: overBudget ? AppColors.danger : null,
               minHeight: 8,
               borderRadius: BorderRadius.circular(8),
             ),
@@ -214,7 +221,7 @@ class _BudgetHealthCard extends StatelessWidget {
                       budget.remainingAmount.abs(),
                       budget.currency,
                     ),
-                    color: overBudget ? Colors.red : null,
+                    color: overBudget ? AppColors.danger : null,
                   ),
                 ),
                 Expanded(
@@ -345,7 +352,7 @@ class _CategoryCard extends ConsumerWidget {
                 const SizedBox(height: 8),
                 LinearProgressIndicator(
                   value: category.spentProgress,
-                  color: over ? Colors.red : null,
+                  color: over ? AppColors.danger : null,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 const SizedBox(height: 7),
@@ -355,7 +362,7 @@ class _CategoryCard extends ConsumerWidget {
                       : '${_money(category.remainingAmount, currency)} left',
                   style: TextStyle(
                     fontSize: 12,
-                    color: over ? Colors.red : null,
+                    color: over ? AppColors.danger : null,
                   ),
                 ),
               ],
@@ -519,7 +526,7 @@ class _ExpenseCard extends ConsumerWidget {
                             label: expense.isOverdue
                                 ? 'Overdue ${_shortDate(expense.dueDate!)}'
                                 : 'Due ${_shortDate(expense.dueDate!)}',
-                            color: expense.isOverdue ? Colors.red : null,
+                            color: expense.isOverdue ? AppColors.danger : null,
                           ),
                       ],
                     ),
@@ -725,8 +732,8 @@ IconData _paymentIcon(ExpensePaymentStatus status) {
 
 Color _paymentColor(ExpensePaymentStatus status) {
   return switch (status) {
-    ExpensePaymentStatus.unpaid => Colors.red,
-    ExpensePaymentStatus.partiallyPaid => Colors.orange,
-    ExpensePaymentStatus.paid => Colors.green,
+    ExpensePaymentStatus.unpaid => AppColors.danger,
+    ExpensePaymentStatus.partiallyPaid => AppColors.warning,
+    ExpensePaymentStatus.paid => AppColors.success,
   };
 }

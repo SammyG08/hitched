@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/submit_button.dart';
 import '../domain/collaboration_models.dart';
 import 'collaboration_controller.dart';
@@ -301,9 +302,9 @@ String _shortDate(DateTime date) {
 
 Color _statusColor(WeddingInvitationStatus status) {
   return switch (status) {
-    WeddingInvitationStatus.pending => Colors.orange,
-    WeddingInvitationStatus.accepted => Colors.green,
-    WeddingInvitationStatus.revoked => Colors.red,
-    WeddingInvitationStatus.expired => Colors.blueGrey,
+    WeddingInvitationStatus.pending => AppColors.warning,
+    WeddingInvitationStatus.accepted => AppColors.success,
+    WeddingInvitationStatus.revoked => AppColors.danger,
+    WeddingInvitationStatus.expired => AppColors.muted,
   };
 }

@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../shared/widgets/entrance_animation.dart';
+import '../../../shared/widgets/hitched_illustration.dart';
 import '../../weddings/presentation/wedding_workspace_controller.dart';
 import '../domain/vendor_models.dart';
 import 'vendor_controller.dart';
@@ -62,7 +65,10 @@ class _VendorListBody extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
               sliver: SliverList.builder(
                 itemCount: vendors.length,
-                itemBuilder: (_, index) => _VendorCard(vendor: vendors[index]),
+                itemBuilder: (_, index) => EntranceAnimation(
+                  delay: Duration(milliseconds: (index > 5 ? 5 : index) * 45),
+                  child: _VendorCard(vendor: vendors[index]),
+                ),
               ),
             ),
         ],
@@ -307,7 +313,7 @@ class _VendorCard extends ConsumerWidget {
                           color:
                               vendor.contractStatus ==
                                   VendorContractStatus.signed
-                              ? Colors.green
+                              ? AppColors.success
                               : null,
                         ),
                       ],
@@ -430,7 +436,12 @@ class _EmptyVendors extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.storefront_outlined, size: 64),
+            HitchedIllustration(
+              asset: 'assets/illustrations/planning_board.svg',
+              width: 250,
+              height: 168,
+              semanticLabel: 'Wedding planning board',
+            ),
             SizedBox(height: 16),
             Text('No vendors match this view.'),
           ],
@@ -471,11 +482,11 @@ String _number(double value) => value.toStringAsFixed(2);
 
 Color _bookingColor(VendorBookingStatus status) {
   return switch (status) {
-    VendorBookingStatus.researching => Colors.blueGrey,
-    VendorBookingStatus.contacted => Colors.blue,
-    VendorBookingStatus.shortlisted => Colors.orange,
-    VendorBookingStatus.booked => Colors.green,
-    VendorBookingStatus.rejected => Colors.red,
+    VendorBookingStatus.researching => AppColors.muted,
+    VendorBookingStatus.contacted => AppColors.info,
+    VendorBookingStatus.shortlisted => AppColors.warning,
+    VendorBookingStatus.booked => AppColors.success,
+    VendorBookingStatus.rejected => AppColors.danger,
   };
 }
 
