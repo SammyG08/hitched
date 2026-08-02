@@ -6,12 +6,14 @@ import 'package:hitched/features/auth/domain/app_user.dart';
 import 'package:hitched/features/auth/domain/auth_repository.dart';
 import 'package:hitched/features/auth/presentation/auth_controller.dart';
 import 'package:hitched/features/dashboard/presentation/dashboard_controller.dart';
+import 'package:hitched/features/guests/presentation/guest_controller.dart';
 import 'package:hitched/features/tasks/presentation/task_controller.dart';
 import 'package:hitched/features/weddings/domain/wedding.dart';
 import 'package:hitched/features/weddings/domain/wedding_repository.dart';
 import 'package:hitched/features/weddings/presentation/wedding_workspace_controller.dart';
 
 import 'support/dashboard_fixture.dart';
+import 'support/guest_fixture.dart';
 import 'support/task_fixture.dart';
 
 void main() {
@@ -30,6 +32,7 @@ void main() {
             FakeDashboardRepository(),
           ),
           taskRepositoryProvider.overrideWithValue(FakeTaskRepository()),
+          guestRepositoryProvider.overrideWithValue(FakeGuestRepository()),
         ],
         child: const HitchedApp(),
       ),
@@ -59,6 +62,14 @@ void main() {
 
     expect(find.text('Alex & Jamie tasks'), findsOneWidget);
     expect(find.text('Book venue'), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Guests'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('The Morgan Family'), findsOneWidget);
+    expect(find.text('Robin Morgan'), findsOneWidget);
   });
 }
 

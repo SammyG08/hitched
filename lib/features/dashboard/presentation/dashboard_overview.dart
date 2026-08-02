@@ -98,6 +98,7 @@ class _MetricGrid extends StatelessWidget {
               value: '${dashboard.guests.attending}/${dashboard.guests.total}',
               detail: '${dashboard.guests.pending} awaiting RSVP',
               progress: guestProgress,
+              onTap: () => context.push('/guests'),
             ),
             _MetricCard(
               width: cardWidth,

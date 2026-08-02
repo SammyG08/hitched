@@ -5,6 +5,9 @@ import '../../features/auth/presentation/auth_controller.dart';
 import '../../features/auth/presentation/launch_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
+import '../../features/guests/presentation/guest_form_screen.dart';
+import '../../features/guests/presentation/guest_list_screen.dart';
+import '../../features/guests/presentation/household_form_screen.dart';
 import '../../features/tasks/presentation/task_form_screen.dart';
 import '../../features/tasks/presentation/task_list_screen.dart';
 import '../../features/weddings/presentation/create_wedding_screen.dart';
@@ -28,6 +31,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/tasks/:taskId/edit',
         builder: (_, state) =>
             TaskFormScreen(taskId: int.parse(state.pathParameters['taskId']!)),
+      ),
+      GoRoute(path: '/guests', builder: (_, _) => const GuestListScreen()),
+      GoRoute(
+        path: '/guests/households/new',
+        builder: (_, _) => const HouseholdFormScreen(),
+      ),
+      GoRoute(
+        path: '/guests/households/:householdId/edit',
+        builder: (_, state) => HouseholdFormScreen(
+          householdId: int.parse(state.pathParameters['householdId']!),
+        ),
+      ),
+      GoRoute(
+        path: '/guests/new',
+        builder: (_, state) => GuestFormScreen(
+          initialHouseholdId: int.tryParse(
+            state.uri.queryParameters['householdId'] ?? '',
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/guests/:guestId/edit',
+        builder: (_, state) => GuestFormScreen(
+          guestId: int.parse(state.pathParameters['guestId']!),
+        ),
       ),
     ],
     redirect: (context, state) {
