@@ -96,33 +96,38 @@ class _PopulatedWorkspace extends ConsumerWidget {
       body: RefreshIndicator(
         onRefresh: () => ref.read(weddingWorkspaceProvider.notifier).refresh(),
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 100),
+          padding: const EdgeInsets.only(bottom: 100),
           children: [
-            EntranceAnimation(
-              child: Text(
-                user.firstName.isEmpty
-                    ? 'Welcome back'
-                    : 'Hi, ${user.firstName}',
-                style: Theme.of(context).textTheme.displaySmall,
+            EntranceAnimation(child: _WeddingHero(wedding: wedding)),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 26, 24, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  EntranceAnimation(
+                    delay: const Duration(milliseconds: 80),
+                    child: Text(
+                      user.firstName.isEmpty
+                          ? 'Welcome back'
+                          : 'Hi, ${user.firstName}',
+                      style: Theme.of(context).textTheme.displaySmall,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  EntranceAnimation(
+                    delay: const Duration(milliseconds: 140),
+                    child: Text(
+                      'Here is the shape of your celebration today.',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  const EntranceAnimation(
+                    delay: Duration(milliseconds: 210),
+                    child: DashboardOverview(),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 8),
-            EntranceAnimation(
-              delay: const Duration(milliseconds: 70),
-              child: Text(
-                'Here is the shape of your celebration today.',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-            ),
-            const SizedBox(height: 24),
-            EntranceAnimation(
-              delay: const Duration(milliseconds: 130),
-              child: _WeddingHero(wedding: wedding),
-            ),
-            const SizedBox(height: 28),
-            const EntranceAnimation(
-              delay: Duration(milliseconds: 210),
-              child: DashboardOverview(),
             ),
           ],
         ),
@@ -133,6 +138,187 @@ class _PopulatedWorkspace extends ConsumerWidget {
 
 class _WeddingHero extends StatelessWidget {
   const _WeddingHero({required this.wedding});
+
+  final Wedding wedding;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipPath(
+      clipper: const _MastheadCurveClipper(),
+      child: SizedBox(
+        height: 310,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset(
+              'assets/images/wedding_table_hero.png',
+              fit: BoxFit.cover,
+            ),
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  stops: [0, 0.42, 1],
+                  colors: [
+                    Color(0x183E1F30),
+                    Color(0x743E1F30),
+                    Color(0xF43E1F30),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              left: 24,
+              right: 24,
+              top: 20,
+              child: Row(
+                children: [
+                  _HeroBadge(
+                    icon: wedding.isOwner
+                        ? Icons.workspace_premium_outlined
+                        : Icons.favorite_outline_rounded,
+                    label: wedding.currentUserRole,
+                  ),
+                  const Spacer(),
+                  _HeroBadge(
+                    icon: Icons.people_outline_rounded,
+                    label:
+                        '${wedding.memberCount} planner${wedding.memberCount == 1 ? '' : 's'}',
+                  ),
+                ],
+              ),
+            ),
+            Positioned(
+              left: 24,
+              right: 24,
+              bottom: 42,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _countdownLabel(wedding.weddingDate).toUpperCase(),
+                    style: const TextStyle(
+                      color: AppColors.champagne,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    wedding.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      height: 1.05,
+                    ),
+                  ),
+                  if (wedding.location.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on_outlined,
+                          color: Colors.white70,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 5),
+                        Expanded(
+                          child: Text(
+                            wedding.location,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _countdownLabel(DateTime? date) {
+    if (date == null) return 'Date to be decided';
+    final today = DateTime.now();
+    final start = DateTime(today.year, today.month, today.day);
+    final days = date.difference(start).inDays;
+    if (days < 0) return 'Your wedding day has passed';
+    if (days == 0) return 'Today is the day!';
+    return '$days days to go';
+  }
+}
+
+class _HeroBadge extends StatelessWidget {
+  const _HeroBadge({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+      decoration: BoxDecoration(
+        color: const Color(0xB33E1F30),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: const Color(0x55FFFFFF)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15, color: AppColors.champagne),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MastheadCurveClipper extends CustomClipper<Path> {
+  const _MastheadCurveClipper();
+
+  @override
+  Path getClip(Size size) {
+    const edgeLift = 26.0;
+    return Path()
+      ..lineTo(0, size.height - edgeLift)
+      ..quadraticBezierTo(
+        size.width / 2,
+        size.height + 4,
+        size.width,
+        size.height - edgeLift,
+      )
+      ..lineTo(size.width, 0)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(covariant _MastheadCurveClipper oldClipper) => false;
+}
+
+// ignore: unused_element
+class _WeddingHeroLegacy extends StatelessWidget {
+  const _WeddingHeroLegacy({required this.wedding});
 
   final Wedding wedding;
 

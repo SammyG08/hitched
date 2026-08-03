@@ -80,6 +80,8 @@ void main() {
     expect(find.text('Overview'), findsOneWidget);
     expect(find.text('Confirm photographer'), findsOneWidget);
 
+    await tester.ensureVisible(find.text('Tasks'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Tasks'));
     await tester.pumpAndSettle();
 
@@ -109,6 +111,8 @@ void main() {
     await tester.pageBack();
     await tester.pumpAndSettle();
     await tester.drag(find.byType(ListView).first, const Offset(0, -200));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Vendors'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Vendors'));
     await tester.pumpAndSettle();
