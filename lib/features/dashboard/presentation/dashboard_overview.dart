@@ -42,6 +42,8 @@ class _DashboardSections extends StatelessWidget {
         const SizedBox(height: 16),
         _MetricGrid(dashboard: dashboard),
         const SizedBox(height: 28),
+        const _VisualShortcuts(),
+        const SizedBox(height: 28),
         _UpcomingTasks(tasks: dashboard.upcomingTasks),
         const SizedBox(height: 20),
         _UpcomingPayments(
@@ -51,6 +53,167 @@ class _DashboardSections extends StatelessWidget {
         const SizedBox(height: 20),
         _UpcomingSchedule(schedule: dashboard.schedule),
       ],
+    );
+  }
+}
+
+class _VisualShortcuts extends StatelessWidget {
+  const _VisualShortcuts();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Keep the joy moving',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+            ),
+            Text(
+              'EXPLORE',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.1,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        SizedBox(
+          height: 184,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            clipBehavior: Clip.none,
+            children: [
+              _ImageShortcut(
+                image: 'assets/images/planning_form_header.png',
+                eyebrow: 'PLANNING',
+                title: 'Stay on track',
+                subtitle: 'Turn ideas into small wins',
+                onTap: () => context.push('/tasks'),
+              ),
+              const SizedBox(width: 12),
+              _ImageShortcut(
+                image: 'assets/images/welcome_hero.png',
+                eyebrow: 'TOGETHER',
+                title: 'Gather your people',
+                subtitle: 'Manage guests with care',
+                alignment: Alignment.topCenter,
+                onTap: () => context.push('/guests'),
+              ),
+              const SizedBox(width: 12),
+              _ImageShortcut(
+                image: 'assets/images/wedding_table_hero.png',
+                eyebrow: 'THE BIG DAY',
+                title: 'Shape the timeline',
+                subtitle: 'Keep every moment flowing',
+                onTap: () => context.push('/schedule'),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ImageShortcut extends StatelessWidget {
+  const _ImageShortcut({
+    required this.image,
+    required this.eyebrow,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.alignment = Alignment.center,
+  });
+
+  final String image;
+  final String eyebrow;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  final Alignment alignment;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 238,
+      child: Card(
+        margin: EdgeInsets.zero,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.asset(image, fit: BoxFit.cover, alignment: alignment),
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0x12000000), Color(0xE43E1F30)],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      eyebrow,
+                      style: const TextStyle(
+                        color: AppColors.champagne,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Positioned(
+                right: 12,
+                top: 12,
+                child: CircleAvatar(
+                  radius: 16,
+                  backgroundColor: Color(0xCCFFFFFF),
+                  child: Icon(
+                    Icons.arrow_outward_rounded,
+                    size: 17,
+                    color: AppColors.deepPlum,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
