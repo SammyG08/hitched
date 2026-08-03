@@ -64,6 +64,10 @@ void main() {
       find.widgetWithText(TextFormField, 'Email'),
       'alex@example.com',
     );
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Continue'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+    await tester.pumpAndSettle();
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Password'),
       'a-secure-test-password',

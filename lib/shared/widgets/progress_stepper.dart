@@ -13,6 +13,39 @@ class ProgressStepper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    if (labels.length > 4) {
+      return Semantics(
+        label:
+            'Step ${currentStep + 1} of ${labels.length}: ${labels[currentStep]}',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'Step ${currentStep + 1} of ${labels.length}',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: scheme.primary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  labels[currentStep],
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            LinearProgressIndicator(
+              value: (currentStep + 1) / labels.length,
+              minHeight: 7,
+              borderRadius: BorderRadius.circular(20),
+            ),
+          ],
+        ),
+      );
+    }
     return Semantics(
       label:
           'Step ${currentStep + 1} of ${labels.length}: ${labels[currentStep]}',

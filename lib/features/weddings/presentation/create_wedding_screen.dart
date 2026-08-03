@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
+import '../../../shared/widgets/form_journey_image.dart';
 import '../../../shared/widgets/progress_stepper.dart';
 import '../../../shared/widgets/submit_button.dart';
 import 'wedding_workspace_controller.dart';
@@ -83,20 +84,23 @@ class _CreateWeddingScreenState extends ConsumerState<CreateWeddingScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const FormJourneyImage(),
+                  const SizedBox(height: 22),
                   Text(_title, style: Theme.of(context).textTheme.displaySmall),
                   const SizedBox(height: 8),
                   Text(_subtitle, style: Theme.of(context).textTheme.bodyLarge),
                   const SizedBox(height: 26),
                   ProgressStepper(
                     currentStep: _step,
-                    labels: const ['The two of you', 'When & where', 'Review'],
+                    labels: const ['Name', 'Place', 'Date', 'Review'],
                   ),
                   const SizedBox(height: 26),
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 280),
                     child: switch (_step) {
                       0 => _nameStep(),
-                      1 => _detailsStep(),
+                      1 => _locationStep(),
+                      2 => _dateStep(),
                       _ => _reviewStep(isCreating),
                     },
                   ),
@@ -119,13 +123,15 @@ class _CreateWeddingScreenState extends ConsumerState<CreateWeddingScreen> {
 
   String get _title => switch (_step) {
     0 => 'What shall we call it?',
-    1 => 'Set the scene',
+    1 => 'Where will you celebrate?',
+    2 => 'When is the big day?',
     _ => 'Your day is taking shape',
   };
 
   String get _subtitle => switch (_step) {
     0 => 'Give your shared planning space a name.',
-    1 => 'Add the date and place—or leave either for later.',
+    1 => 'Add a city or venue—or decide later.',
+    2 => 'Choose the date, or keep it open for now.',
     _ => 'Review the details before creating your workspace.',
   };
 
@@ -160,8 +166,8 @@ class _CreateWeddingScreenState extends ConsumerState<CreateWeddingScreen> {
     ),
   );
 
-  Widget _detailsStep() => Column(
-    key: const ValueKey('wedding-details'),
+  Widget _locationStep() => Column(
+    key: const ValueKey('wedding-location'),
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       TextField(
@@ -174,7 +180,19 @@ class _CreateWeddingScreenState extends ConsumerState<CreateWeddingScreen> {
           prefixIcon: Icon(Icons.location_on_outlined),
         ),
       ),
-      const SizedBox(height: 16),
+      const SizedBox(height: 22),
+      FilledButton.icon(
+        onPressed: _continue,
+        icon: const Icon(Icons.arrow_forward_rounded),
+        label: const Text('Continue'),
+      ),
+    ],
+  );
+
+  Widget _dateStep() => Column(
+    key: const ValueKey('wedding-date'),
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
       InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: _chooseDate,

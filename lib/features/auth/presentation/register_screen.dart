@@ -4,13 +4,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/api_exception.dart';
 import '../../../shared/widgets/auth_scaffold.dart';
+import '../../../shared/widgets/form_journey_image.dart';
 import '../../../shared/widgets/progress_stepper.dart';
 import '../../../shared/widgets/submit_button.dart';
 import 'auth_controller.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({this.inviteToken, super.key});
-
   final String? inviteToken;
 
   @override
@@ -18,39 +18,37 @@ class RegisterScreen extends ConsumerStatefulWidget {
 }
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
-  final _identityKey = GlobalKey<FormState>();
-  final _accountKey = GlobalKey<FormState>();
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _keys = List.generate(4, (_) => GlobalKey<FormState>());
+  final _firstName = TextEditingController();
+  final _lastName = TextEditingController();
+  final _email = TextEditingController();
+  final _password = TextEditingController();
   var _step = 0;
-  bool _obscurePassword = true;
+  var _obscurePassword = true;
 
   @override
   void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
+    _firstName.dispose();
+    _lastName.dispose();
+    _email.dispose();
+    _password.dispose();
     super.dispose();
   }
 
   void _continue() {
-    final valid = _step == 0
-        ? _identityKey.currentState!.validate()
-        : _accountKey.currentState!.validate();
-    if (valid) setState(() => _step++);
+    if (_step < 4 && _keys[_step].currentState!.validate()) {
+      setState(() => _step++);
+    }
   }
 
   Future<void> _submit() async {
     final succeeded = await ref
         .read(authControllerProvider.notifier)
         .register(
-          firstName: _firstNameController.text,
-          lastName: _lastNameController.text,
-          email: _emailController.text,
-          password: _passwordController.text,
+          firstName: _firstName.text,
+          lastName: _lastName.text,
+          email: _email.text,
+          password: _password.text,
         );
     if (!succeeded && mounted) {
       final error = ref.read(authControllerProvider).error;
@@ -65,40 +63,36 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authControllerProvider);
+    final auth = ref.watch(authControllerProvider);
+    const labels = ['First name', 'Last name', 'Email', 'Password', 'Review'];
     return AuthScaffold(
       children: [
+        const FormJourneyImage(),
+        const SizedBox(height: 22),
         Text(
-          _step == 2 ? 'Everything looks lovely' : 'Create your account',
+          _step == 4 ? 'Everything looks lovely' : _headings[_step],
           style: Theme.of(context).textTheme.displaySmall,
         ),
         const SizedBox(height: 8),
-        Text(_subtitle, style: Theme.of(context).textTheme.bodyLarge),
+        Text(_supportingText, style: Theme.of(context).textTheme.bodyLarge),
         const SizedBox(height: 24),
-        ProgressStepper(
-          currentStep: _step,
-          labels: const ['About you', 'Secure it', 'Review'],
-        ),
+        ProgressStepper(currentStep: _step, labels: labels),
         const SizedBox(height: 24),
         AnimatedSwitcher(
-          duration: const Duration(milliseconds: 280),
-          child: switch (_step) {
-            0 => _identityStep(),
-            1 => _accountStep(),
-            _ => _reviewStep(authState.isLoading),
-          },
+          duration: const Duration(milliseconds: 260),
+          child: _step == 4 ? _review(auth.isLoading) : _inputStep(),
         ),
-        if (_step > 0 && !authState.isLoading) ...[
-          const SizedBox(height: 10),
+        if (_step > 0 && !auth.isLoading) ...[
+          const SizedBox(height: 8),
           TextButton.icon(
             onPressed: () => setState(() => _step--),
             icon: const Icon(Icons.arrow_back_rounded),
             label: const Text('Back'),
           ),
         ],
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
         TextButton(
-          onPressed: authState.isLoading
+          onPressed: auth.isLoading
               ? null
               : () => context.go(
                   widget.inviteToken == null
@@ -111,128 +105,118 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
-  String get _subtitle => switch (_step) {
-    0 => 'Tell us who is beginning this planning journey.',
-    1 => 'Choose the details you will use to return.',
-    _ =>
+  static const _headings = [
+    'What should we call you?',
+    'And your family name?',
+    'Where can we reach you?',
+    'Keep your plans safe',
+  ];
+
+  String get _supportingText => switch (_step) {
+    0 => 'Let’s begin with your first name.',
+    1 => 'This completes your profile.',
+    2 =>
       widget.inviteToken == null
-          ? 'Your wedding workspace is one tap away.'
-          : 'Create your account, then open your invitation.',
+          ? 'Use the email you want linked to your plans.'
+          : 'Use the email that received your invitation.',
+    3 => 'Choose at least 8 characters.',
+    _ => 'Review your details before we begin.',
   };
 
-  Widget _identityStep() => Form(
-    key: _identityKey,
-    child: Column(
-      key: const ValueKey('identity'),
-      children: [
-        TextFormField(
-          controller: _firstNameController,
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'First name',
-            prefixIcon: Icon(Icons.person_outline_rounded),
-          ),
-          validator: _requiredName,
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: _lastNameController,
-          textCapitalization: TextCapitalization.words,
-          textInputAction: TextInputAction.done,
-          onFieldSubmitted: (_) => _continue(),
-          decoration: const InputDecoration(
-            labelText: 'Last name',
-            prefixIcon: Icon(Icons.badge_outlined),
-          ),
-          validator: _requiredName,
-        ),
-        const SizedBox(height: 22),
-        FilledButton.icon(
-          onPressed: _continue,
-          icon: const Icon(Icons.arrow_forward_rounded),
-          label: const Text('Continue'),
-        ),
-      ],
-    ),
-  );
-
-  Widget _accountStep() => Form(
-    key: _accountKey,
-    child: Column(
-      key: const ValueKey('account'),
-      children: [
-        TextFormField(
-          controller: _emailController,
-          autofocus: true,
-          keyboardType: TextInputType.emailAddress,
-          textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(
-            labelText: 'Email',
-            hintText: 'you@example.com',
-            prefixIcon: Icon(Icons.mail_outline_rounded),
-          ),
-          validator: (value) => value == null || !value.contains('@')
-              ? 'Enter a valid email address.'
-              : null,
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: _passwordController,
-          obscureText: _obscurePassword,
-          textInputAction: TextInputAction.done,
-          onFieldSubmitted: (_) => _continue(),
-          decoration: InputDecoration(
-            labelText: 'Password',
-            helperText: 'Use at least 8 characters.',
-            prefixIcon: const Icon(Icons.lock_outline_rounded),
-            suffixIcon: IconButton(
-              onPressed: () =>
-                  setState(() => _obscurePassword = !_obscurePassword),
-              icon: Icon(
-                _obscurePassword
-                    ? Icons.visibility_outlined
-                    : Icons.visibility_off_outlined,
-              ),
+  Widget _inputStep() {
+    final config = switch (_step) {
+      0 => (
+        controller: _firstName,
+        label: 'First name',
+        icon: Icons.person_outline_rounded,
+        keyboard: TextInputType.name,
+        obscure: false,
+      ),
+      1 => (
+        controller: _lastName,
+        label: 'Last name',
+        icon: Icons.badge_outlined,
+        keyboard: TextInputType.name,
+        obscure: false,
+      ),
+      2 => (
+        controller: _email,
+        label: 'Email',
+        icon: Icons.mail_outline_rounded,
+        keyboard: TextInputType.emailAddress,
+        obscure: false,
+      ),
+      _ => (
+        controller: _password,
+        label: 'Password',
+        icon: Icons.lock_outline_rounded,
+        keyboard: TextInputType.visiblePassword,
+        obscure: _obscurePassword,
+      ),
+    };
+    return Form(
+      key: _keys[_step],
+      child: Column(
+        key: ValueKey('register-$_step'),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextFormField(
+            controller: config.controller,
+            autofocus: true,
+            keyboardType: config.keyboard,
+            obscureText: config.obscure,
+            textCapitalization: _step < 2
+                ? TextCapitalization.words
+                : TextCapitalization.none,
+            textInputAction: TextInputAction.done,
+            onFieldSubmitted: (_) => _continue(),
+            decoration: InputDecoration(
+              labelText: config.label,
+              prefixIcon: Icon(config.icon),
+              suffixIcon: _step == 3
+                  ? IconButton(
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                      ),
+                    )
+                  : null,
             ),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) return 'Required.';
+              if (_step == 2 && !value.contains('@')) {
+                return 'Enter a valid email address.';
+              }
+              if (_step == 3 && value.length < 8) {
+                return 'Password must be at least 8 characters.';
+              }
+              return null;
+            },
           ),
-          validator: (value) => value == null || value.length < 8
-              ? 'Password must be at least 8 characters.'
-              : null,
-        ),
-        const SizedBox(height: 22),
-        FilledButton.icon(
-          onPressed: _continue,
-          icon: const Icon(Icons.arrow_forward_rounded),
-          label: const Text('Review account'),
-        ),
-      ],
-    ),
-  );
+          const SizedBox(height: 22),
+          FilledButton.icon(
+            onPressed: _continue,
+            icon: const Icon(Icons.arrow_forward_rounded),
+            label: Text(_step == 3 ? 'Review account' : 'Continue'),
+          ),
+        ],
+      ),
+    );
+  }
 
-  Widget _reviewStep(bool isLoading) => Column(
-    key: const ValueKey('review'),
+  Widget _review(bool loading) => Column(
+    key: const ValueKey('register-review'),
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       Card(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              const CircleAvatar(
-                radius: 28,
-                child: Icon(Icons.favorite_rounded),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 4),
-              Text(_emailController.text.trim()),
-            ],
-          ),
+        child: ListTile(
+          contentPadding: const EdgeInsets.all(18),
+          leading: const CircleAvatar(child: Icon(Icons.favorite_rounded)),
+          title: Text('${_firstName.text.trim()} ${_lastName.text.trim()}'),
+          subtitle: Text(_email.text.trim()),
         ),
       ),
       const SizedBox(height: 20),
@@ -240,12 +224,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         label: widget.inviteToken == null
             ? 'Create my account'
             : 'Create account and view invitation',
-        isLoading: isLoading,
+        isLoading: loading,
         onPressed: _submit,
       ),
     ],
   );
-
-  String? _requiredName(String? value) =>
-      value == null || value.trim().isEmpty ? 'Required.' : null;
 }
