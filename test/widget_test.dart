@@ -55,6 +55,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    expect(find.text('Plan the day.\nEnjoy the journey.'), findsOneWidget);
+    await tester.tap(find.text('I already have an account'));
+    await tester.pumpAndSettle();
     expect(find.text('Welcome back'), findsOneWidget);
 
     await tester.enterText(

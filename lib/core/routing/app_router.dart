@@ -5,6 +5,7 @@ import '../../features/auth/presentation/auth_controller.dart';
 import '../../features/auth/presentation/launch_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
+import '../../features/auth/presentation/welcome_screen.dart';
 import '../../features/budget/presentation/budget_category_form_screen.dart';
 import '../../features/budget/presentation/budget_expense_form_screen.dart';
 import '../../features/budget/presentation/budget_screen.dart';
@@ -30,6 +31,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: '/launch',
     routes: [
       GoRoute(path: '/launch', builder: (_, _) => const LaunchScreen()),
+      GoRoute(path: '/welcome', builder: (_, _) => const WelcomeScreen()),
       GoRoute(
         path: '/login',
         builder: (_, state) =>
@@ -142,7 +144,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final authState = ref.read(authControllerProvider);
       final location = state.matchedLocation;
-      final isAuthRoute = location == '/login' || location == '/register';
+      final isAuthRoute =
+          location == '/welcome' ||
+          location == '/login' ||
+          location == '/register';
       final isInvitationRoute =
           location == '/invite' || location.startsWith('/invite/');
 
@@ -156,7 +161,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isAuthenticated =
           authState.hasValue && authState.requireValue != null;
       if (!isAuthenticated) {
-        return isAuthRoute || isInvitationRoute ? null : '/login';
+        if (location == '/launch') return '/welcome';
+        return isAuthRoute || isInvitationRoute ? null : '/welcome';
       }
       if (isAuthRoute) {
         final inviteToken = state.uri.queryParameters['invite'];
