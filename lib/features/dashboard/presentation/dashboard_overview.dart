@@ -255,6 +255,7 @@ class _MetricGrid extends StatelessWidget {
                     ? '${dashboard.tasks.completionPercentage.toStringAsFixed(0)}% complete'
                     : '${dashboard.tasks.overdue} overdue',
                 progress: taskProgress,
+                accent: AppColors.roseDeep,
                 onTap: () => context.push('/tasks'),
               ),
             ),
@@ -268,6 +269,7 @@ class _MetricGrid extends StatelessWidget {
                     '${dashboard.guests.attending}/${dashboard.guests.total}',
                 detail: '${dashboard.guests.pending} awaiting RSVP',
                 progress: guestProgress,
+                accent: AppColors.sage,
                 onTap: () => context.push('/guests'),
               ),
             ),
@@ -287,6 +289,7 @@ class _MetricGrid extends StatelessWidget {
                     ? '${_money(dashboard.budget.remainingAmount, dashboard.budget.currency)} remaining'
                     : 'Create your budget',
                 progress: budgetProgress,
+                accent: AppColors.gold,
                 onTap: () => context.push('/budget'),
               ),
             ),
@@ -299,6 +302,7 @@ class _MetricGrid extends StatelessWidget {
                 value: '${dashboard.vendors.booked}/${dashboard.vendors.total}',
                 detail: '${dashboard.vendors.contractsSigned} contracts signed',
                 progress: vendorProgress,
+                accent: AppColors.info,
                 onTap: () => context.push('/vendors'),
               ),
             ),
@@ -317,6 +321,7 @@ class _MetricCard extends StatelessWidget {
     required this.value,
     required this.detail,
     required this.progress,
+    required this.accent,
     this.onTap,
   });
 
@@ -326,61 +331,121 @@ class _MetricCard extends StatelessWidget {
   final String value;
   final String detail;
   final double progress;
+  final Color accent;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    final safeProgress = progress.clamp(0, 1).toDouble();
+    final percentage = (safeProgress * 100).round();
+    final background = Color.alphaBlend(accent.withAlpha(18), Colors.white);
     return SizedBox(
       width: width,
-      child: Card(
-        margin: EdgeInsets.zero,
+      height: 188,
+      child: Material(
+        color: background,
         clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: BorderSide(color: accent.withAlpha(45)),
+        ),
         child: InkWell(
           onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          child: Stack(
+            children: [
+              Positioned(
+                right: -22,
+                top: -24,
+                child: CircleAvatar(
+                  radius: 48,
+                  backgroundColor: accent.withAlpha(16),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      icon,
-                      size: 20,
-                      color: Theme.of(context).colorScheme.primary,
+                    Row(
+                      children: [
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: accent,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: accent.withAlpha(45),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Icon(icon, size: 20, color: Colors.white),
+                        ),
+                        const Spacer(),
+                        Icon(
+                          Icons.arrow_outward_rounded,
+                          size: 18,
+                          color: accent,
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        label,
-                        style: const TextStyle(fontWeight: FontWeight.w700),
+                    const Spacer(),
+                    Text(
+                      label,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: accent,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.9,
                       ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      value,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: AppColors.deepPlum,
+                        fontSize: 23,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      detail,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: LinearProgressIndicator(
+                            value: safeProgress,
+                            minHeight: 6,
+                            color: accent,
+                            backgroundColor: accent.withAlpha(28),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '$percentage%',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: accent,
+                                fontWeight: FontWeight.w800,
+                              ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 14),
-                Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  detail,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                const SizedBox(height: 12),
-                LinearProgressIndicator(
-                  value: progress.clamp(0, 1).toDouble(),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
