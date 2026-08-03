@@ -113,7 +113,8 @@ class _BudgetBody extends ConsumerWidget {
           else
             SliverToBoxAdapter(
               child: SizedBox(
-                height: 172,
+                // Leave room for accessible text scaling and the display typeface.
+                height: 192,
                 child: ListView.separated(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   scrollDirection: Axis.horizontal,
